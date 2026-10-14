@@ -3,14 +3,12 @@ mediapipe>=0.10.0
 requests>=2.31.0
 beautifulsoup4>=4.12.0
 Pillow>=10.0.0
-numpy>=1.24.0
+numpy>=2.5.0
 aiortc>=1.6.0
-# For AI try-on (install as needed)
-torch>=2.1.0
-torchvision>=0.16.0
-diffusers>=0.21.0
-transformers>=4.35.0
-accelerate>=0.25.0
+torch==2.7.1+cu128
+torchvision==0.22.1+cu128
+xformers==0.0.24
+playwright>=1.40.0
 # Optional: xformers for memory efficient attention
 # xformers>=0.0.22  # May require specific CUDA version
 # Optional: ControlNet models via diffusers
