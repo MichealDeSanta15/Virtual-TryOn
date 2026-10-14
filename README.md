@@ -26,8 +26,23 @@ Live virtual try-on system using phone camera as webcam, local Stable Diffusion 
 
 ## Next Steps (per 3MEMBER_PLAN.md)
 - **Member 1 (Friend 1)**: Build PyQt6 GUI, inputs, thumbnail display, frame overlay.
-- **Member 2 (Friend 2)**: Implement Playwright scraper, SQLite cache, search API.
-- **Member 3 (You)**: Phone‑camera WebRTC receiver, pose estimation (MediaPipe/ControlNet), try‑on engine (SD+ControlNet), VRAM optimizations, integration.
+- **Member 1 (Friend 1)**: Build PyQt6 GUI, inputs, thumbnail display, frame overlay.
+- **Member 2 (Friend 2 - Completed ✅)**: Implemented `clothing_pipeline`: Playwright stealth scraper (Myntra, Ajio, Amazon), SQLite cache, LRU eviction, fallback demo dataset, and `search_clothes(event, budget)` API.
+- **Member 3 (AI/Integration)**: Phone‑camera WebRTC receiver, pose estimation (MediaPipe/ControlNet), try‑on engine (SD+ControlNet), VRAM optimizations, integration.
+
+## Clothing Pipeline API (Friend 2)
+
+```python
+from clothing_pipeline.api import search_clothes
+
+# Search by occasion and budget
+results = search_clothes(event="wedding", budget="5000")
+
+for item in results:
+    print(item["brand"], "-", item["title"])
+    print(f"Price: Rs. {item['price']} | Image: {item['image_path']}")
+```
+
 
 ## Notes
 - This is a starting point; replace the placeholder processing with actual AI try‑on pipeline.

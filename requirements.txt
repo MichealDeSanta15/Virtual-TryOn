@@ -14,5 +14,8 @@ accelerate>=0.25.0
 # Optional: xformers for memory efficient attention
 # xformers>=0.0.22  # May require specific CUDA version
 # Optional: ControlNet models via diffusers
-# Optional: Playwright for scraping
+# Web Scraping & Clothing Pipeline (Friend 2)
 playwright>=1.40.0
+playwright-stealth>=1.0.6
+aiohttp>=3.9.0
+urllib3>=2.0.0
