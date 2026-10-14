@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "edgeai-tryon"
+version = "0.1.0"
+description = "Local phone camera and asynchronous CatVTON integration for an academic Edge AI project"
+requires-python = ">=3.10"
+
+[tool.setuptools.packages.find]
+include = ["edgeai*"]
+
+[tool.setuptools.package-data]
+edgeai = ["web/*", "vendor/catvton/LICENSE", "vendor/catvton/resource/img/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

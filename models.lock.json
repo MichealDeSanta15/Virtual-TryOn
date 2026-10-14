@@ -1,0 +1,43 @@
+{
+  "base": {
+    "repo": "stable-diffusion-v1-5/stable-diffusion-inpainting",
+    "revision": "8a4288a76071f7280aedbdb3253bdb9e9d5d84bb",
+    "files": [
+      "unet/config.json",
+      "unet/diffusion_pytorch_model.bin",
+      "scheduler/scheduler_config.json",
+      "safety_checker/config.json",
+      "safety_checker/pytorch_model.bin",
+      "feature_extractor/preprocessor_config.json",
+      "README.md"
+    ]
+  },
+  "catvton": {
+    "repo": "zhengchong/CatVTON",
+    "revision": "2969fcf85fe62f2036605716f0b56f0b81d01d79",
+    "files": [
+      "mix-48k-1024/attention/*",
+      "README.md",
+      "LICENSE*"
+    ]
+  },
+  "vae": {
+    "repo": "stabilityai/sd-vae-ft-mse",
+    "revision": "31f26fdeee1355a5c34592e401dd41e45d25a493",
+    "files": [
+      "config.json",
+      "diffusion_pytorch_model.safetensors",
+      "README.md"
+    ]
+  },
+  "parser": {
+    "repo": "mattmdjaga/segformer_b2_clothes",
+    "revision": "584abc1e1d260e23c0fc627c5217a09b2b461046",
+    "files": [
+      "config.json",
+      "preprocessor_config.json",
+      "model.safetensors",
+      "README.md"
+    ]
+  }
+}

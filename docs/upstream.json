@@ -1,0 +1,11 @@
+{
+  "repository": "https://github.com/Zheng-Chong/CatVTON",
+  "commit": "7818397f25613beedb3d861a34769f607cfcf3b1",
+  "sha256_original": {
+    "utils.py": "1961ef92f0913e4d6bf2d71edcc6b4c1dbc8af950d58ee001d9a0ddbf4d1bd07",
+    "model/pipeline.py": "27063e55a6468ab2b823d05a116f6baa5fa78330b3c9b9de9724aa3af2c3d279",
+    "model/utils.py": "9e5041c963126fba8053648cb0b52b2427eaf817c02bdd23421175e80c24eb7f",
+    "model/attn_processor.py": "b9a353b0c953878d711b0fd9234cefdd032e48958ddf83dc91870140a21696bf"
+  },
+  "modification": "Namespaced absolute imports. Added optional vae_ckpt argument for a local VAE path. VAE encoding now accepts an explicit execution_device, rejects meta input/execution, and does not move image data to vae.device (which can be meta under Accelerate offload). Standard and Pix2Pix paths pass self.device. Added optional encode/denoise/decode/safety stage callbacks for whole-model placement. UNet/VAE/safety checker select available local safetensors or .bin explicitly. Safety checker initialized to None when skipped. Runtime wrapper uses local checkpoint directories."
+}
