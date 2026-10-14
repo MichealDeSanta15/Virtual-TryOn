@@ -1,4 +1,11 @@
-"""Quick smoke test of the public API using fallback data."""
+import sys
+from pathlib import Path
+
+# Ensure project root is in sys.path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
 
 from clothing_pipeline.api import search_clothes, get_stats
 

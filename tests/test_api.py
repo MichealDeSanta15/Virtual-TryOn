@@ -1,10 +1,13 @@
-"""
-Tests for the public API — uses the fallback path (no live scraping).
-"""
-
 import os
+import sys
 import tempfile
 from pathlib import Path
+
+# Ensure project root is in sys.path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
 
 # Override DB path before importing api
 os.environ["CLOTHING_PIPELINE_TEST"] = "1"
