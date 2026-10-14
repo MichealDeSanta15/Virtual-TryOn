@@ -1,0 +1,63 @@
+{
+  "date_local": "2026-10-15",
+  "timezone": "Asia/Calcutta",
+  "environment": "Linux CPU, pinned existing SegFormer clothes parser; no GPU diffusion",
+  "input": "Brown model-worn dress reference cropped from user screenshot; original retail image not supplied",
+  "parser_revision": "584abc1e1d260e23c0fc627c5217a09b2b461046",
+  "preparation": {
+    "method": "semantic_clothing",
+    "category": "overall",
+    "crop_box": [
+      19,
+      62,
+      300,
+      482
+    ],
+    "source_size": [
+      346,
+      485
+    ],
+    "prepared_size": [
+      331,
+      470
+    ],
+    "selected_fraction": 0.4404,
+    "warnings": [
+      "Review before use. Skin, hair, face, legs and background should be white; fabric hidden by a pose is NOT reconstructed."
+    ],
+    "review_required": true,
+    "hidden_fabric_reconstructed": false
+  },
+  "browser": {
+    "checks": [
+      "actual screenshot-crop semantic clothing extraction",
+      "uploaded source is not prepared asset",
+      "review blocks generation",
+      "dress preset defaults",
+      "real CPU person mask with opt-in sleeves",
+      "manual paint/apply regenerates asset and invalidates review",
+      "mobile overflow",
+      "no JS errors"
+    ],
+    "gpu_generation_performed": false
+  },
+  "catalog_selection": {
+    "source": "previously downloaded real Femmella product",
+    "automatic_extraction_on_selection": true,
+    "source_not_used_as_prepared_asset": true,
+    "review_required": true,
+    "category_change_invalidates_preparation": true,
+    "gpu_generation_performed": false
+  },
+  "automated_tests": {
+    "passed": 131,
+    "warnings": 1,
+    "seconds": 8.21
+  },
+  "limits": [
+    "Segmentation is not perfect; human review required.",
+    "Hidden fabric and pose normalization not reconstructed.",
+    "No proof of improved final garment transfer on RTX 5060 until rerun.",
+    "Catalog selection verification used previously fetched real photos, not a new live-availability test."
+  ]
+}

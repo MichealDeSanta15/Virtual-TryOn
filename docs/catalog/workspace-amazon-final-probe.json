@@ -1,0 +1,21 @@
+{
+  "sources": [
+    {
+      "source": "amazon",
+      "status": "error",
+      "message": "ValueError: HTTP 503",
+      "found": 0,
+      "usable": 0
+    }
+  ],
+  "used_live": true,
+  "mode": "live_and_cache",
+  "message": "No matching products with usable photos. Filters were not relaxed. Try another query, import a real local catalog, or upload a garment.",
+  "currency": "INR",
+  "query": "party dress",
+  "budget": "5000",
+  "notice": "Catalog prices are cached observations, not a checkout quote. Verify availability and final price at the retailer.",
+  "product_count": 0,
+  "elapsed_seconds": 1.5,
+  "title_checks": []
+}

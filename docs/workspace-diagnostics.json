@@ -1,0 +1,53 @@
+{
+  "python": "3.13.16 (main, Oct  6 2026, 04:38:44) [GCC 14.2.0]",
+  "platform": "Linux-6.1.158+-x86_64-with-glibc2.41",
+  "models": {
+    "base": {
+      "ready": false,
+      "missing": [
+        "unet/config.json",
+        "unet/diffusion_pytorch_model.bin",
+        "scheduler/scheduler_config.json",
+        "safety_checker/config.json",
+        "safety_checker/pytorch_model.bin",
+        "feature_extractor/preprocessor_config.json"
+      ]
+    },
+    "catvton": {
+      "ready": false,
+      "missing": [
+        "mix-48k-1024/attention/*"
+      ]
+    },
+    "vae": {
+      "ready": false,
+      "missing": [
+        "config.json",
+        "diffusion_pytorch_model.safetensors"
+      ]
+    },
+    "parser": {
+      "ready": false,
+      "missing": [
+        "config.json",
+        "preprocessor_config.json",
+        "model.safetensors"
+      ]
+    }
+  },
+  "packages": {
+    "torch": "NOT INSTALLED",
+    "torchvision": "NOT INSTALLED",
+    "diffusers": "NOT INSTALLED",
+    "transformers": "NOT INSTALLED",
+    "accelerate": "NOT INSTALLED",
+    "aiortc": "1.15.0",
+    "opencv-python": "4.11.0.86"
+  },
+  "warnings": [
+    "CUDA check failed. Install matched cu128 torch/torchvision and a recent NVIDIA driver."
+  ],
+  "cuda_error": "No module named 'torch'",
+  "ready_for_gpu_trial": false,
+  "note": "Readiness checks are not a successful inference or quality benchmark. Run scripts/tryon.py next."
+}

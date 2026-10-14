@@ -1,0 +1,21 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.egg-info/
+models/
+data/
+*.pem
+*.key
+.pose-venv/
+# This is source code, not a generated cache directory (important in friend's repo).
+!clothing_pipeline/cache/
+!clothing_pipeline/cache/*.py
+
+# Publishing safeguards
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.zip
+

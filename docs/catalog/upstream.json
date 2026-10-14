@@ -1,0 +1,26 @@
+{
+  "repository": "https://github.com/MichealDeSanta15/Virtual-TryOn",
+  "branch": "friend-2-web-scraping-pipeline",
+  "commit": "1c070852cf309177fad620a5d9eca0d64c878997",
+  "original_sha256": {
+    "clothing_pipeline/api.py": "9de1f0b779cd673208b797c08673d7218b5bf95a35d982ecef0d4f7f3aea0d1a",
+    "clothing_pipeline/__init__.py": "e038953f7c828817f3c7caa3c34bc11eb1ef68be54570f7f4a18af047cdbab37",
+    "clothing_pipeline/config.py": "bd269acfb422fbb8595acb6e671d5df167b9d5f962b6d3117b91e4c54a888448",
+    "clothing_pipeline/database/models.py": "7918bcf52dc256cb045c3d6fcd754591a64fa7050905e8d07ae34110152b131d",
+    "clothing_pipeline/database/__init__.py": "0579c6e7a9e382120ffa9465443d4315c2dc41b9c883ed968d3d9a02a5086365",
+    "clothing_pipeline/database/operations.py": "3712624419e7a505a8d18c25312aa96dad1a3bac7d37ca9ea12d436e2c719ca0",
+    "clothing_pipeline/database/schema.py": "f0c5149b39508f52a7115672d724520405fab57b90f986c63fcda2a7b328719a",
+    "clothing_pipeline/scraper/ajio.py": "040816c9113d094968751a3c2000af5a18f8624a91ecb7ac377008c7d89a013b",
+    "clothing_pipeline/scraper/__init__.py": "0856f8f239a855afebb1a2e7e7c5c41cbb29046347a4b66ca6ac18f3177f162c",
+    "clothing_pipeline/scraper/amazon.py": "9fbde83555717b92b6d57679e60276757a65fcfd81d92efba01d8d2ac10d3494",
+    "clothing_pipeline/scraper/base.py": "4a79ffe2e5843c708b6a70f429dfe713cd941d1c4f46c8e07618d652d4728841",
+    "clothing_pipeline/scraper/myntra.py": "271b451e85d00b8e9684fa9e44c88171cf1be62595e9d4a3e4cb6f1d3b9db6b1",
+    "clothing_pipeline/scraper/robots.py": "0b56d1477fc42dbd1b6a27d79e338f41eb0ff8690b1350ad4818731690efdfae",
+    "clothing_pipeline/fallback/__init__.py": "010aef06eb692711f4f44950372edce4647a9b794690a97687d987acf46f691b",
+    "clothing_pipeline/fallback/loader.py": "3b20147d0db59b7af575e803a5e6e9927eb05f32f69ad39657f396b13413fcf3",
+    "clothing_pipeline/search/__init__.py": "ae4ac08a3a222fecd6ad3a62c36227c4e30578c8d7f32fc8629dd1ed89e188fc",
+    "clothing_pipeline/search/engine.py": "0361ce0dde825f91b8f65f09d293d27202ecf47399b99b668c6569fd29b43174"
+  },
+  "integration": "Original team data model, SQLite schema/operations and site-specific DOM adapters retained/adapted. API, search, transport, cache, validation and real catalog import repaired/added. Mock GUI and fake catalog not used.",
+  "license_note": "No explicit LICENSE in reviewed branch; confirm team permission before redistribution. See AUDIT.md."
+}

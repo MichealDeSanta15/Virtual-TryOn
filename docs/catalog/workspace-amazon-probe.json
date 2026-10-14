@@ -1,0 +1,20 @@
+{
+  "sources": [
+    {
+      "source": "amazon",
+      "status": "ok",
+      "message": "12 validated product images; 0 downloads rejected",
+      "found": 12,
+      "usable": 12
+    }
+  ],
+  "used_live": true,
+  "mode": "live_and_cache",
+  "message": "5 matching products with validated images",
+  "currency": "INR",
+  "query": "party dress",
+  "budget": "5000",
+  "notice": "Catalog prices are cached observations, not a checkout quote. Verify availability and final price at the retailer.",
+  "product_count": 5,
+  "elapsed_seconds": 46.93
+}
