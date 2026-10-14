@@ -10,7 +10,7 @@ import time
 from typing import Optional
 
 # Configuration
-PHONE_STREAM_URL = "http://192.168.1.100:8080/video"  # Replace with actual phone IP
+PHONE_STREAM_URL = "http://192.168.1.236:8080/video"  # Replace with actual phone IP
 # For testing, can use 0 for webcam
 # PHONE_STREAM_URL = 0
 
