@@ -1,0 +1,41 @@
+{
+  "synthetic_test_only": true,
+  "raw_stream": [
+    768,
+    512
+  ],
+  "portrait_preview": [
+    512,
+    768
+  ],
+  "saved_person_and_editor": [
+    512,
+    768
+  ],
+  "css_rotation_used": false,
+  "reload_preference_pass": true,
+  "source_mode_restores_landscape": true,
+  "mobile_width_pass": true,
+  "javascript_errors": [],
+  "physical_phone_tested": false,
+  "date_local": "2026-10-15",
+  "timezone": "Asia/Calcutta",
+  "new_orientation_tests_passed": 16,
+  "suite": {
+    "passed": 137,
+    "skipped": 2,
+    "warning": 1,
+    "seconds": 5.28,
+    "skip_reason": "torch unavailable: existing offload module and staged-placement test"
+  },
+  "physical_orientation_sensor_detection": false,
+  "new_gpu_test": false,
+  "rotation_modes": [
+    "source",
+    "portrait_cw",
+    "portrait_ccw",
+    "cw90",
+    "ccw90",
+    "180"
+  ]
+}

@@ -1,0 +1,628 @@
+EDGE AI VIRTUAL TRY-ON
+COPY-READY PROMPT PACK FOR ALL THREE TEAM MEMBERS
+============================================================
+
+PURPOSE
+-------
+This file contains prompts for asking an AI assistant to help plan, build,
+review, debug, integrate and present our project. These are task prompts, not
+claims that every feature has been implemented or tested.
+
+TEAM RESPONSIBILITIES
+---------------------
+Member 1: Interface, user experience and application workflow.
+Member 2: Live clothing discovery, scraper/feed adapters, filtering and catalog.
+Member 3: Phone camera, local AI try-on, GPU optimization and service integration.
+
+HOW TO USE THIS FILE
+-------------------
+1. Start a new conversation with the SHARED PROJECT CONTEXT below.
+2. Add the relevant numbered prompt, your current files and any real logs.
+3. Work through prompts in order. Do not request every implementation at once.
+4. Use the integration prompts when the individual modules are ready.
+5. Replace bracketed placeholders before sending a prompt.
+6. Never paste passwords, access tokens, private keys or non-consenting photos.
+7. If the project already exists, ask for incremental changes, not a replacement.
+
+============================================================
+SHARED PROJECT CONTEXT — PASTE BEFORE ANY MEMBER'S PROMPT
+============================================================
+
+"We are a three-member team building an academic Edge AI Virtual Try-On
+application. A phone acts as the camera for a Windows laptop. We capture or
+upload a consenting person's photo, enter an event and an INR budget, such as
+'freshers under 5000', discover real clothing from online stores, select a
+reference garment and generate a local AI try-on image.
+
+The intended workflow is:
+phone camera/upload -> person photo -> event and budget -> live product search
+-> garment selection -> clothing-only reference preparation and review ->
+person edit-mask generation and review -> local AI inference -> result.
+
+Users should be able to try different garments as separate alternatives on the
+same captured person. Do not imply that alternatives are simultaneously layered
+onto the person unless a separate outfit-composition feature is implemented.
+
+Team roles:
+- Member 1 owns the interface and user workflow.
+- Member 2 owns live clothing discovery and catalog management.
+- Member 3 owns camera ingestion, AI inference, optimization and backend integration.
+
+Target hardware: Windows, NVIDIA RTX 5060 Laptop GPU with approximately 8 GB VRAM.
+Python 3.11 is our preferred environment. In the existing working installation,
+PyTorch 2.7.1 with CUDA 12.8 is used. Preserve the working GPU stack unless there
+is a verified compatibility reason to change it.
+
+The main interface is a browser-based studio using HTML, CSS and JavaScript.
+Use Python/FastAPI as the local service. A PyQt6 desktop client is optional,
+not a requirement to build a second independent application.
+
+AI inference must run on local hardware. Internet is allowed for initial model
+setup and fresh clothing searches. Local inference and online product discovery
+must be clearly distinguished. Do not send person photographs to a scraping
+provider or cloud AI without explicit authorization.
+
+Prioritize tops, trousers/skirts and dresses, one garment at a time. This is
+appearance simulation, not a guaranteed size/fit predictor or 3D cloth simulator.
+The camera preview is live; AI generation produces a processed still image.
+Do not claim real-time try-on, exact garment reproduction or measured speed
+without actual evidence.
+
+Prefer free, accessible public product feeds/pages from real stores. Do not
+promise universal access, defeat CAPTCHAs or silently show cached/fake products
+as fresh results. If an optional paid API is proposed, explain costs and obtain
+approval before using it. Keep keys in local configuration, not code or chat.
+
+Use real garment-conditioned inference, not a pasted clothing image or mock
+output. Check model/code/data licenses for academic and non-commercial use.
+Use synthetic fixtures only for explicitly labelled tests, never as real catalog
+entries or convincing fake demonstration results.
+
+Before changing code, inspect the existing repository and interfaces. Reuse
+working modules and preserve the agreed contracts. Explain assumptions, provide
+an implementation plan, add tests, and report exactly what was tested versus
+what still needs Windows/GPU/phone validation."
+
+============================================================
+PART A — SHARED PLANNING PROMPTS
+============================================================
+
+A1. PROJECT PROPOSAL AND FEASIBILITY
+----------------------------------
+"Using the shared context, prepare a realistic project proposal. Include the
+problem statement, intended users, objectives, why the project qualifies as
+Edge AI, system workflow, hardware requirements, expected benefits and limits.
+
+Separate a minimum viable demonstration from future enhancements. Assess what
+is feasible on an RTX 5060 laptop with 8 GB VRAM. Identify internet-dependent
+parts and local-only parts. Do not invent performance benchmarks or assume
+that every shopping site permits scraping. End with a clear scope that our
+three-member team can implement and defend before judges."
+
+A2. ARCHITECTURE, OWNERSHIP AND DEVELOPMENT PLAN
+----------------------------------------------
+"Design the architecture and development plan for our three-member team.
+Show the flow between the interface, camera service, catalog service, storage,
+segmentation/mask preparation and local AI worker.
+
+Give each member a clear responsibility matrix, deliverables, dependencies,
+milestones and acceptance criteria. Explain which work can proceed in parallel.
+Make Member 3 responsible for the shared local service, while Members 1 and 2
+integrate through agreed interfaces. Avoid duplicate GPU models and competing
+backend implementations. Include an MVP plan and a final integration checklist."
+
+A3. SHARED DATA AND API CONTRACTS
+--------------------------------
+"Inspect our existing project and document a single integration contract for all
+three members. Define person, garment, mask and result asset IDs; product IDs;
+INR prices; source URLs; freshness timestamps; garment category; preparation
+status; job state; errors and timing metadata.
+
+Specify authenticated API requests/responses for uploads, camera preview/capture,
+catalog search/status, product selection, garment preparation, person masking,
+generation/status and cleanup. If routes already exist, preserve them and describe
+additive changes. Clarify that a selected source photo is not necessarily an
+approved garment-only reference. Include example JSON, validation rules and
+rules for avoiding filesystem-path or credential exposure."
+
+============================================================
+PART B — MEMBER 1: INTERFACE AND USER WORKFLOW
+============================================================
+
+M1-01. INTERFACE PLAN AND SCREEN DESIGN
+--------------------------------------
+"I am Member 1, responsible for the interface. Design a clean, accessible browser
+studio for our Edge AI Virtual Try-On project using HTML, CSS and JavaScript.
+
+Include event/budget search, product cards, source status, photo upload, phone-camera
+preview, capture, orientation controls, garment preparation/review, person-mask
+editing, quality/seed controls and original-versus-result comparison.
+
+Plan desktop and mobile layouts. Define loading, empty, disconnected, blocked,
+invalid-input and generation-failure states. Explain the component structure and
+interaction flow before implementation. Keep the working backend contract intact."
+
+M1-02. BUILD AND CONNECT THE APPLICATION
+---------------------------------------
+"Implement the agreed interface against our real local backend. Inspect the current
+frontend and API first. Add reusable API/error-handling helpers, pairing-token
+handling and non-blocking job polling.
+
+Do not freeze the interface during scraping, extraction or inference. Disable
+conflicting actions, reject duplicate submissions, and display meaningful stages
+rather than fabricated percentage progress. Do not put tokens in URLs or image
+source attributes; load protected images through authenticated requests.
+
+Provide the changed files, setup steps and browser tests. Distinguish any test-only
+fixtures from production behavior."
+
+M1-03. LIVE PRODUCT SEARCH AND SELECTION EXPERIENCE
+-------------------------------------------------
+"Build or improve the catalog interface. Support an event/garment query, INR budget,
+source and optional category/brand/colour filters. Show real product photos,
+prices, source links, fetch timestamps and per-store errors.
+
+Make fresh live search the default. Saved-only browsing must be an explicit,
+clearly labelled mode; never display old results as a successful live fetch.
+
+On selection, hand the source image and category to garment preparation. Prevent
+an old asynchronous response from replacing a newer selection. Clear incompatible
+person masks and invalidate the previous garment approval when the reference or
+category changes. Test empty searches, strict budgets and unavailable photos."
+
+M1-04. GARMENT-ONLY PREVIEW AND CORRECTION EDITOR
+-----------------------------------------------
+"Implement a reference-preparation workflow for product photos containing a model.
+Show the extracted garment on a neutral background and keep the original photo
+separately for correction. Add keep/erase painting, brush size, reset, apply and
+download controls for the reference selection mask.
+
+This reference mask is different from the person's edit mask. Label them clearly.
+Require inspection and confirmation before studio generation. Changing the source,
+category or selection must invalidate the approved preparation. If extraction
+fails, do not silently use the full model photo. Show an actionable error and
+allow manual correction or another reference. Test stale responses and review gates."
+
+M1-05. PHONE PREVIEW, PORTRAIT CAPTURE AND MASK EDITING
+-----------------------------------------------------
+"Integrate the phone-camera controls and person-mask editor into the UI. Add camera
+source, connect, stop, capture and actual-frame orientation controls. Preview and
+saved capture must have the same orientation; a CSS-only rotation is insufficient.
+
+Display portrait frames without cropping or stretching. Explain that MJPEG may not
+provide physical phone-orientation metadata. Support source orientation and explicit
+correction modes without double-rotating already-portrait frames.
+
+For the person mask, support auto generation, paint/erase, brush size and review.
+Invalidate masks when person/category/settings change. Explain that white pixels
+are editable and that hands, face, hair and shoes need protection."
+
+M1-06. RESULT COMPARISON, DOWNLOADS AND SESSION STORAGE
+-----------------------------------------------------
+"Create a result view showing the captured original, chosen garment and generated
+output. Show genuine timing/resolution information returned by the backend.
+Provide downloads for the final result, person mask, raw model output and actual
+garment-conditioning image when available.
+
+Handle session-storage limits gracefully. Warn before deletion, let users save
+important results, and distinguish session assets from catalog images and model
+weights. Do not automatically delete active-job assets or private files outside
+managed storage. Add clear recovery instructions for storage-full errors."
+
+M1-07. OPTIONAL PYQT6 CLIENT INTEGRATION
+---------------------------------------
+"If our team uses a PyQt6 desktop interface, connect it to the same local FastAPI
+service rather than creating another model instance. Use worker threads/signals
+for long requests, safe QImage/NumPy ownership and responsive progress updates.
+
+Replace mock catalog and try-on services with the real contracts. Implement the
+same garment-reference review and mask workflow as the web studio. Explain what
+can be reused, what remains browser-specific and how to test without confusing
+synthetic fixtures with genuine AI output. Do not build this second client unless
+it is part of our agreed scope."
+
+M1-08. UI ACCEPTANCE TESTING AND DEMONSTRATION
+--------------------------------------------
+"Audit and test the complete user interface on desktop and mobile widths. Cover
+pairing, uploads, live/saved search labels, source failures, selection, preparation,
+manual correction, camera capture/orientation, mask editing, job errors, result
+downloads and session cleanup.
+
+Test slow/out-of-order responses, reloads and switching inputs during background
+work. Check browser-console errors, keyboard usability and horizontal overflow.
+Provide a test report with exact evidence and remaining gaps. Write a short live-demo
+narration for Member 1's interface responsibilities without overstating AI quality."
+
+============================================================
+PART C — MEMBER 2: LIVE CLOTHING SEARCH AND CATALOG
+============================================================
+
+M2-01. SOURCE RESEARCH AND LIVE-ACCESS FEASIBILITY
+------------------------------------------------
+"I am Member 2, responsible for real clothing discovery. Research and test clothing
+stores with accessible public product feeds/pages relevant to our INR-based demo.
+
+Evaluate real product metadata, image availability, robots policies, access
+restrictions, currency, request limits and image-use terms. Prefer free sources.
+Do not promise access to Amazon, Myntra, Ajio or any protected retailer without
+successful evidence. Do not bypass CAPTCHAs or login/access controls.
+
+Return a dated source matrix distinguishing working, blocked, untested and unreliable
+sources. Propose several independent sources so one failure does not end the search."
+
+M2-02. SCRAPER/FEED ADAPTER ARCHITECTURE
+--------------------------------------
+"Design modular retailer/feed adapters that return the shared product schema:
+source, stable source URL/ID, title, brand, price, currency, category, colour,
+available variants/sizes, image URL, observation timestamp and provenance.
+
+Use ordinary bounded HTTP for public feeds and browser automation only where
+necessary and permitted. Add timeouts, per-host pacing, redirect checks, approved
+hosts and bounded response sizes. Respect Retry-After rather than retrying rapidly.
+
+Isolate per-store failures and expose clear source status. Preserve partial fresh
+results where safe. Do not invent missing prices, brands, stock or product images."
+
+M2-03. EVENT, BUDGET AND FILTER INTERPRETATION
+--------------------------------------------
+"Implement query interpretation for examples such as 'freshers under 5000',
+'blue shirt below 2000' and 'wedding outfit 3000-5000'. Support Indian commas,
+decimal INR prices and explicit category/brand/colour/source filters.
+
+Separate deterministic budget/filter validation from optional occasion-ranking
+heuristics. Reject invalid or ambiguous budgets instead of treating them as unlimited.
+Never silently increase the budget or relax requested filters to produce results.
+Explain category ambiguity and supported single-garment types. Add unit tests for
+boundary prices, missing prices, dress-versus-shirt/skirt naming and empty matches."
+
+M2-04. VARIANT-AWARE PRODUCT PHOTOS
+----------------------------------
+"Make product-image selection consistent with the displayed garment and price.
+Where feeds provide variants, choose an observed available variant, associate its
+colour/image correctly and state what the price represents. Reject ambiguous
+multi-colour image matches rather than using an unrelated first photo.
+
+Prefer complete, front-facing garment views where available. Validate actual image
+bytes, dimensions and decoding; do not mistake HTML error pages for images.
+Keep original provenance and avoid generated placeholder products. Explain that
+image decoding does not prove garment suitability or permission to reuse the photo."
+
+M2-05. SQLITE STORAGE AND EXPLICIT CACHING
+-----------------------------------------
+"Implement thread-safe SQLite catalog storage with stable product IDs and upserts.
+Preserve decimal prices and source/observation metadata. Store validated images in
+a managed directory with size limits and safe filenames.
+
+A live request must perform fresh source requests even if the database contains
+matching products, and must return only products observed during that request.
+A failed live fetch must not silently fall back to old database rows.
+
+Support a separately labelled saved-only mode with bounded caching and revalidated
+filters. Add tests for concurrency, stale prices, expiry, missing images and disk
+limits. Document cleanup without deleting the user's model weights or private files."
+
+M2-06. CONNECT SEARCH TO THE REAL TRY-ON PIPELINE
+------------------------------------------------
+"Integrate the catalog module into the existing backend without replacing its
+working camera, AI engine or interface. Run searches in a bounded worker separate
+from GPU inference. Preserve the shared product/asset contracts.
+
+Selecting a product should provide a validated source image and supported category,
+then trigger the agreed garment-only preparation/review flow. Do not classify a
+multi-piece outfit as a supported single dress just to make it selectable.
+
+Provide an end-to-end test from search response to thumbnail, selection and reference
+asset. Report whether each test used real network data or an offline fixture."
+
+M2-07. FAILURE HANDLING AND OPTIONAL MANAGED APIS
+-----------------------------------------------
+"Improve behavior when a retailer returns 403, 429, a CAPTCHA, a changed page layout,
+a timeout or an unavailable image. Explain the error honestly and continue with
+other approved sources when possible.
+
+If a managed scraping API is worth considering, compare it with the free-source
+approach. Explain account/key requirements, per-request credit costs, request caps
+and the lack of universal access guarantees. Do not activate paid services without
+approval. Never send person photos to the provider. Keep keys out of source control.
+Include a reproducible diagnostic process, not repeated unbounded requests."
+
+M2-08. SCRAPER VALIDATION AND JUDGES' EXPLANATION
+-----------------------------------------------
+"Create deterministic parser/filter/database tests plus a separate, bounded live
+verification procedure. Record actual source status, fetch time, products with
+usable photos, price/currency checks and important limitations.
+
+Make clear that offline fixtures passing does not prove a protected live site works.
+Prepare a concise explanation for judges: why some websites block scraping, why
+we chose accessible public feeds, how fresh and saved results differ, and why we
+cannot promise complete inventory or checkout availability. Do not describe
+restrictions as successfully bypassed if that was not implemented and verified."
+
+============================================================
+PART D — MEMBER 3: CAMERA, LOCAL AI AND HARDWARE
+============================================================
+
+M3-01. LOCAL AI FEASIBILITY AND MODEL SELECTION
+----------------------------------------------
+"I am Member 3, responsible for phone capture, realistic local try-on, hardware
+optimization and integration. Evaluate garment-conditioned virtual try-on models
+for Windows and an RTX 5060 Laptop GPU with 8 GB VRAM.
+
+Compare model quality, category support, license, download size, dependencies,
+Windows compatibility and likely memory needs. Use CatVTON as an existing baseline
+if it is already working; do not replace it casually. Explain why a generic diffusion
+model or 2D overlay is not equivalent to garment-conditioned try-on.
+
+Recommend a practical MVP and distinguish published resource claims from benchmarks
+actually measured on our laptop. Include risks for dresses and model-worn references."
+
+M3-02. WINDOWS AND RTX 5060 ENVIRONMENT SETUP
+--------------------------------------------
+"Inspect our current environment and create a reproducible Windows setup/diagnostic
+plan. Target Python 3.11 and Blackwell-compatible CUDA PyTorch; preserve the known
+working PyTorch 2.7.1 + CUDA 12.8 installation unless a verified change is necessary.
+
+Check driver/CUDA compatibility, available VRAM, model files, package versions and
+small CUDA operations. Use pinned model revisions and appropriate licenses.
+Separate additive camera/catalog packages from the GPU environment. Do not blindly
+install another repository's requirements over a functioning setup.
+
+Provide PowerShell commands, a diagnostics report and recovery guidance. A successful
+installation check must not be described as proven inference quality or speed."
+
+M3-03. PHONE-CAMERA INGESTION
+-----------------------------
+"Implement phone-to-laptop camera ingestion using an app-supported local stream or
+virtual webcam, such as IP Webcam, DroidCam or iVCam where available. Explain the
+difference between a control webpage and a direct video endpoint.
+
+Use OpenCV for supported streams/device indices, a latest-frame buffer, bounded
+reconnection and stale-frame checks. Provide preview, start/stop and capture APIs.
+Keep RGB/BGR conversions explicit. Do not feed every camera frame into diffusion.
+
+Optionally support a browser WebRTC publisher over trusted HTTPS. Document LAN,
+permissions, firewall and certificate requirements, and explain why a hosted cloud
+preview cannot directly access the user's private phone IP."
+
+M3-04. PORTRAIT ORIENTATION AND CAPTURE CONSISTENCY
+-------------------------------------------------
+"Fix phone-camera orientation so the laptop preview, saved person photo, mask editor
+and AI input agree. Inspect actual decoded dimensions before assuming the issue is
+only the UI layout.
+
+Support source orientation and explicit rotation modes. Conditional portrait modes
+must leave already-portrait frames unchanged. Rotate actual pixels without cropping,
+stretching or repeatedly rotating an already-transformed buffer. Preserve raw frames.
+
+Explain that MJPEG may not include physical phone-tilt metadata; automatic device
+following requires correctly oriented source frames or a separate orientation signal.
+Add pixel-level and API/browser tests, including capture during orientation changes."
+
+M3-05. GARMENT-CONDITIONED AI INFERENCE SERVICE
+----------------------------------------------
+"Implement or audit the real local try-on engine. Inputs are person image, prepared
+garment reference, reviewed person mask, garment category, quality preset and seed.
+Return a generated image, raw model output, actual conditioning image, mask and
+genuine timing/memory metadata.
+
+Load the model once, use one bounded GPU worker and validate input geometry. Preserve
+aspect ratio rather than blindly cropping the body. Preserve pixels outside the
+approved edit region. Keep existing model safety mechanisms enabled.
+
+Use genuine garment-conditioned inference; never return a pasted overlay or mock
+result when inference fails. Add error handling for missing weights, bad masks,
+unsupported categories, OOM and cancelled jobs."
+
+M3-06. REFERENCE EXTRACTION AND PERSON MASKS
+-------------------------------------------
+"Implement clothing-only reference preparation using the existing local clothing
+parser where appropriate. A model-worn photo must not be treated as a clean product
+cutout merely because its background was removed.
+
+Retain the requested garment and relevant belt/panels while excluding body/background
+according to segmentation. Preserve observed colours and aspect ratio; do not invent
+hidden fabric. Provide a preview, reference selection mask and warnings for review.
+
+Separately generate the PERSON edit mask. Cover the old garment and the intended new
+silhouette, with conservative face/hair/hand protections. Support reviewed sleeve or
+long-dress proposals without claiming accurate hand/pose detection. Add tests and
+explain segmentation limitations."
+
+M3-07. GPU MEMORY, SPEED AND RESOURCE OPTIMIZATION
+------------------------------------------------
+"Profile the existing try-on pipeline on our actual RTX 5060 laptop. Measure cold
+startup and repeated warm inference separately. Record resolution, steps, dtype,
+VRAM allocation/reservation, model placement and output quality.
+
+Evaluate mixed precision, native attention, VAE tiling/slicing and staged versus
+sequential/resident placement. Prefer keeping the denoising model resident throughout
+its steps when memory permits. Preserve known offload/device-placement fixes.
+
+Do not promise FPS from camera throughput or call a generated still real-time AR.
+Change one variable at a time and provide before/after measurements. Do not weaken
+safety checks or fabricate benchmark results to appear faster."
+
+M3-08. BACKEND INTEGRATION, STORAGE AND ACCEPTANCE
+------------------------------------------------
+"Integrate Member 1's client and Member 2's catalog with the local camera/AI service.
+Use authenticated same-origin APIs, bounded workers, clear errors and safe asset IDs.
+Keep camera capture responsive while long-running work occurs. Avoid duplicate model
+instances and concurrent GPU inference.
+
+Handle source selection, garment preparation/review binding, mask geometry, capture
+orientation, job cancellation and storage quotas. Cleanup must protect active jobs
+and must distinguish session files, catalog images and model weights.
+
+Provide integration tests and a Windows acceptance checklist covering phone capture,
+real product selection, extraction, masks and actual GPU generation for tops,
+trousers and dresses. Clearly label unverified fidelity and performance."
+
+============================================================
+PART E — SHARED INTEGRATION, DELIVERY AND PRESENTATION
+============================================================
+
+E1. END-TO-END REPOSITORY REVIEW
+--------------------------------
+"Review the complete work from all three members against the agreed architecture.
+Identify interface mismatches, duplicate services, mock production paths, unsafe
+file/network handling, broken defaults and untested assumptions.
+
+Trace one real user request from camera capture through fresh search, garment
+preparation, mask review, local inference and result download. Prioritize fixes by
+severity. Preserve working code and use an incremental patch. Provide deterministic
+tests, separately labelled live/GPU tests and a clear acceptance report."
+
+E2. CONTROLLED QUALITY AND PERFORMANCE EVALUATION
+------------------------------------------------
+"Design an evaluation plan for our academic report. Use consenting adult photos
+and permitted garment references across tops, lower-body clothing and dresses.
+Include simple and difficult poses, model-worn versus garment-only references,
+and mask/extraction failures.
+
+Record garment colour/detail transfer, silhouette, face/hand preservation, artifacts,
+latency, VRAM and source reliability. Separate subjective visual review from measured
+quantities. Do not invent accuracy percentages or claim exact physical fit.
+Document failures as well as successes and propose justified improvements."
+
+E3. SAFE GIT COLLABORATION AND RELEASE
+-------------------------------------
+"Help our three-member team publish the reviewed project safely. Confirm the exact
+repository, target branch, current default branch and write/admin access before
+remote changes. Keep feature branches for member work and use pull requests where
+required. Do not force-push or delete branches without explicit permission.
+
+Exclude model weights, virtual environments, private photos, generated outputs,
+catalog databases and credentials. Preserve code/model attribution and licenses.
+If making main the default, verify the main branch exists and the push/merge succeeds
+before changing the repository setting.
+
+Do not request tokens in chat or claim a push happened without confirmation. Provide
+local instructions if authenticated access is unavailable."
+
+E4. FIVE-MINUTE JUDGES' PRESENTATION
+-----------------------------------
+"Write a five-minute presentation for three speakers. Speaker 1 explains the problem,
+idea, workflow and why it is Edge AI. Speaker 2 narrates an actual demonstration:
+live clothing search, phone capture, garment extraction/review, person mask and
+local generation. Speaker 3 explains the technology stack, challenges and conclusion.
+
+Mention protected retailer access, limited GPU memory and garment/mask fidelity as
+real challenges. Explain our mitigations without claiming guaranteed scraping,
+instant AR, exact fit or perfect transfer. Include timing, stage directions and
+honest fallback lines for search failure, slow inference or a poor result.
+A pre-generated backup must be labelled as pre-generated."
+
+E5. JUDGES' QUESTIONS AND ANSWERS
+---------------------------------
+"Prepare concise, technically defensible answers to likely judging questions:
+Why Edge AI? Which work is local versus online? Why use a phone camera? Why these
+models? How is this different from image pasting? Why does inference take time?
+Why are some websites blocked? How are budgets enforced? What happens offline?
+How are photos protected? Can it predict size or fit? What causes poor dress results?
+How was it tested? What did each team member contribute? What would improve next?
+
+Use only our implemented features and measured results. Mark unknowns rather than
+inventing answers. Include a short answer and an optional deeper technical answer
+for each question."
+
+E6. FINAL REPORT, README AND HANDOVER
+------------------------------------
+"Create project documentation suitable for academic submission and teammate handover.
+Include abstract, problem statement, objectives, architecture, member contributions,
+tech stack, setup, data flow, APIs, implementation decisions, privacy/licensing,
+tests, genuine results, limitations and future work.
+
+Distinguish implemented, tested and proposed features. Explain the fresh-versus-saved
+catalog modes, local GPU inference, reference/mask review and phone-camera orientation.
+Document known errors and recovery steps, including storage-full messages and camera
+connection failures. Include a reproducible demo checklist and dependency/model
+provenance. Do not describe an unperformed test as completed."
+
+============================================================
+PART F — REUSABLE TROUBLESHOOTING PROMPTS
+============================================================
+
+F1. CAMERA WORKS IN A BROWSER BUT NOT IN THE STUDIO
+-------------------------------------------------
+"My phone stream works separately but not in our studio. Here are the exact URL,
+phone app, screenshot, laptop/server location and terminal error: [DETAILS].
+
+Check whether I supplied a control webpage instead of a video stream, whether
+HTTP/HTTPS and port match the app, whether certificates are trusted by the capture
+backend, and whether the laptop can reach the phone over the LAN. Check permissions,
+firewall and stream format. Do not disable certificate verification globally or
+assume a hosted server can reach my private phone IP. Diagnose before patching."
+
+F2. WRONG PORTRAIT/LANDSCAPE ORIENTATION
+---------------------------------------
+"My phone is held portrait, but the studio preview/captured photo is wrong. Here are
+raw stream dimensions, screenshots and the current orientation mode: [DETAILS].
+
+Determine whether the source pixels are sideways, upright-but-wide, already portrait,
+or only displayed incorrectly. Compare preview, saved asset and mask-editor dimensions.
+Do not solve it with CSS rotation alone or crop away body parts. Account for source
+orientation changes and explain any missing phone-sensor metadata. Provide a minimal
+fix with tests and a way to avoid double rotation."
+
+F3. THE RESULT DOES NOT MATCH THE CHOSEN GARMENT
+------------------------------------------------
+"The generated result does not match the selected garment. I am attaching the person
+image, original garment photo, prepared garment input, reference mask, person mask,
+raw model output, final result and settings/metrics: [FILES AND DETAILS].
+
+Trace the exact assets passed to inference. Check stale selections, category mismatch,
+remaining source-model pixels, missing fabric, mask coverage for sleeves/hem and
+outside-mask compositing. Separate a preparation/mask problem from model fidelity.
+Do not just increase steps or promise that extraction guarantees success. Propose
+controlled experiments and report what can be concluded from the evidence."
+
+F4. CUDA OOM, SLOW INFERENCE OR MODEL LOADING ERROR
+--------------------------------------------------
+"Here are my full traceback, diagnostics, package versions, GPU/VRAM, preset, input
+sizes and memory mode: [DETAILS]. Diagnose this local inference problem.
+
+Preserve the working Windows/CUDA environment where possible. Identify whether the
+issue is model loading, checkpoint format, unsupported GPU kernels, offload/device
+placement, transient allocation or actual capacity. Provide the smallest justified
+change and a rollback path. Do not blindly reinstall the stack, suppress safety
+checks or claim the issue is fixed without a successful verification run."
+
+F5. LOCAL STORAGE FULL
+-----------------------
+"The studio reports that local storage is full. Inspect the configured limits,
+managed asset directories and cleanup behavior. Explain whether this is the
+application's file-count/byte quota or actual disk exhaustion.
+
+Help me preserve important results and remove only approved session files after
+jobs finish. Do not delete models, the Python environment, catalog data or unrelated
+photos. If improving the code, add usage reporting, a warning before the limit and
+safe cleanup that respects active-job/reference dependencies. Do not implement
+silent deletion of user results."
+
+F6. LIVE SCRAPER BLOCKED OR RETURNS NO PRODUCTS
+----------------------------------------------
+"Our live clothing search fails for [SOURCE/QUERY/BUDGET]. Here are the source status,
+HTTP response details and logs: [DETAILS]. Determine whether this is a policy block,
+rate limit, changed response format, currency issue, strict-filter mismatch, missing
+image or transport failure.
+
+Use bounded diagnostics and respect access restrictions/Retry-After. Do not call
+cached products live, create fake results or promise a CAPTCHA bypass. Preserve
+successful results from other sources. Give a verified fix where possible and an
+honest explanation when the source cannot currently be used."
+
+============================================================
+FINAL REMINDERS FOR ALL THREE MEMBERS
+============================================================
+
+- A successful request is not proof of realistic try-on quality.
+- A decoded image is not proof of clothing suitability or image-use permission.
+- Live camera FPS is not AI generation FPS.
+- Freshly fetched retailer data is not guaranteed checkout availability.
+- Clothing extraction is not hidden-fabric reconstruction or a perfect flat-lay.
+- Portrait dimensions alone do not reveal physical phone orientation.
+- Source-code tests, live-site tests, physical-phone tests and GPU tests are different.
+- Keep genuine failures visible and record limitations honestly.
+- Use one shared backend contract and integrate early, not only on presentation day.
+
+END OF PROMPT PACK

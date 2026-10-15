@@ -23,9 +23,29 @@ from .worker import TryOnWorker, BusyError
 WEB = Path(__file__).parent / "web"
 
 
+class CatalogRequest(BaseModel):
+    event: str = Field(min_length=1,max_length=160)
+    budget: str = Field(default="5000",max_length=60)
+    brand: str | None = Field(default=None,max_length=80)
+    category: str | None = Field(default=None,max_length=40)
+    color: str | None = Field(default=None,max_length=40)
+    source: Literal["nonasties","femella","nobero","summerhouse","myntra","ajio","amazon","local"] | None = None
+    live: bool = True
+    refresh: bool = False
+    limit: int = Field(default=24,ge=1,le=50)
+
+
+class GarmentPrepareRequest(BaseModel):
+    garment: str
+    category: Literal["upper", "lower", "overall"] = "upper"
+    mask: str | None = None  # original reference-photo geometry, NOT person mask
+
+
 class GenerateRequest(BaseModel):
     person: str
     garment: str
+    preparation: str | None = None
+    garment_reviewed: bool = False
     mask: str | None = None
     category: Literal["upper", "lower", "overall"] = "upper"
     preset: Literal["draft", "balanced", "quality", "dress"] = "draft"
@@ -38,10 +58,19 @@ class MaskRequest(BaseModel):
     profile: Literal["standard", "long_dress"] = "standard"
     hem_fraction: float = Field(default=.92, ge=.5, le=.98)
     flare: float = Field(default=.2, ge=0, le=.6)
+    sleeves: bool = False
+
+
+CameraOrientation = Literal["source", "portrait_cw", "portrait_ccw", "cw90", "ccw90", "180"]
 
 
 class CameraRequest(BaseModel):
     source: str = Field(default="0", max_length=512)
+    orientation: CameraOrientation | None = None
+
+
+class CameraOrientationRequest(BaseModel):
+    orientation: CameraOrientation
 
 
 class OfferRequest(BaseModel):
@@ -60,9 +89,22 @@ def create_app(settings=None, token=None, engine=None):
     receiver = WebRTCReceiver(frames)
     camera = None
     worker = None
+    catalog_worker = None
+    garment_worker = None
+    from .catalog import CatalogService
+    catalog = CatalogService(settings, store)
     mask_busy = asyncio.Lock()
 
+    def run_prepare(progress, garment, category, mask=None):
+        source = load_rgb(store.path(garment))
+        selection = load_rgb(store.path(mask)).convert('L') if mask else None
+        prepared = engine.prepare_garment(source, category, mask=selection, progress=progress)
+        return {'garment':store.save(prepared.image), 'mask':store.save(prepared.mask),
+                'source':garment, 'category':category, 'metadata':prepared.metadata}
+
     def run_job(progress, **req):
+        preparation = req.pop('preparation', None)
+        reviewed = req.pop('garment_reviewed', False)
         person = load_rgb(store.path(req.pop("person")))
         garment = load_rgb(store.path(req.pop("garment")))
         mask_key = req.pop("mask", None)
@@ -70,13 +112,20 @@ def create_app(settings=None, token=None, engine=None):
         result = engine.generate(person, garment, mask=mask, progress=progress, **req)
         return {"image": store.save(result.image), "mask": store.save(result.mask),
                 "raw": store.save(result.raw), "metrics": result.metrics,
-                "parsing": store.save(result.parsing) if result.parsing else None}
+                "parsing": store.save(result.parsing) if result.parsing else None,
+                "condition": store.save(result.condition) if getattr(result, "condition", None) else None,
+                "preparation":preparation, "garment_reviewed":reviewed}
 
     @asynccontextmanager
     async def lifespan(app):
-        nonlocal worker, camera
+        nonlocal worker, camera, catalog_worker, garment_worker
         worker = TryOnWorker(run_job)
         app.state.worker = worker
+        catalog_worker = TryOnWorker(catalog.search, history=12)
+        app.state.catalog_worker = catalog_worker
+        app.state.catalog = catalog
+        garment_worker = TryOnWorker(run_prepare, history=12)
+        app.state.garment_worker = garment_worker
         yield
         await receiver.close()
         if camera:
@@ -85,6 +134,8 @@ def create_app(settings=None, token=None, engine=None):
             except RuntimeError:
                 pass
         worker.close()
+        catalog_worker.close()
+        garment_worker.close()
         frames.release()
 
     app = FastAPI(title="EdgeAI Try-On • local research prototype", lifespan=lifespan,
@@ -130,7 +181,7 @@ def create_app(settings=None, token=None, engine=None):
 
     @app.get("/static/{name}")
     async def static(name: str):
-        if name not in ("app.js", "style.css"):
+        if name not in ("app.js", "garment.js", "style.css"):
             raise HTTPException(404)
         return FileResponse(WEB / name)
 
@@ -147,6 +198,38 @@ def create_app(settings=None, token=None, engine=None):
                 "offload": settings.effective_memory_mode != "resident",
                 "memory_mode": settings.effective_memory_mode, "categories": CATEGORIES}
 
+    @app.post("/api/catalog/search", dependencies=auth, status_code=202)
+    async def catalog_search(req: CatalogRequest):
+        from clothing_pipeline.search.engine import SearchEngine
+        SearchEngine.parse_budget(req.budget)  # Reject invalid filters before starting work.
+        if not req.event.strip(): raise HTTPException(400, "Enter an occasion or garment")
+        values = req.model_dump()
+        values['scrape_if_empty'] = values.pop('live')
+        try:
+            return {"id":catalog_worker.submit(**values)}
+        except BusyError as exc:
+            raise HTTPException(409, str(exc)) from exc
+
+    @app.get("/api/catalog/search/{job_id}", dependencies=auth)
+    async def catalog_search_status(job_id: str):
+        try: return catalog_worker.get(job_id)
+        except KeyError: raise HTTPException(404,"Unknown or expired catalog search")
+
+    @app.get("/api/catalog/products/{product_id}/image", dependencies=auth)
+    async def product_image(product_id: int):
+        path = await asyncio.to_thread(catalog.image_path, product_id)
+        def thumbnail():
+            from io import BytesIO
+            image = load_rgb(path)
+            image.thumbnail((480,640))
+            buffer = BytesIO();image.save(buffer,format="PNG")
+            return buffer.getvalue()
+        return Response(await asyncio.to_thread(thumbnail), media_type="image/png")
+
+    @app.post("/api/catalog/products/{product_id}/select", dependencies=auth)
+    async def select_product(product_id: int):
+        return await asyncio.to_thread(catalog.select, product_id)
+
     @app.post("/api/assets", dependencies=auth)
     async def upload(file: UploadFile = File(...), mask: bool = False):
         try:
@@ -160,6 +243,20 @@ def create_app(settings=None, token=None, engine=None):
     async def asset(key: str):
         return FileResponse(store.path(key), media_type="image/png")
 
+    @app.post("/api/garments/prepare", dependencies=auth, status_code=202)
+    async def prepare_garment(req: GarmentPrepareRequest):
+        store.path(req.garment)
+        if req.mask: store.path(req.mask)
+        try:
+            return {"id":garment_worker.submit(**req.model_dump())}
+        except BusyError as exc:
+            raise HTTPException(409, str(exc)) from exc
+
+    @app.get("/api/garments/prepare/{job_id}", dependencies=auth)
+    async def garment_preparation(job_id: str):
+        try: return garment_worker.get(job_id)
+        except KeyError: raise HTTPException(404, "Unknown/expired garment preparation")
+
     @app.post("/api/mask", dependencies=auth)
     async def mask(req: MaskRequest):
         if mask_busy.locked():
@@ -168,7 +265,7 @@ def create_app(settings=None, token=None, engine=None):
             person = load_rgb(store.path(req.person))
             try:
                 mask, parsing = await asyncio.to_thread(engine.make_mask, person, req.category,
-                                                          profile=req.profile, hem_fraction=req.hem_fraction, flare=req.flare)
+                                                          profile=req.profile, hem_fraction=req.hem_fraction, flare=req.flare, sleeves=req.sleeves)
             except Exception as exc:
                 raise HTTPException(422, f"Automatic masking unavailable: {exc}. Paint a manual mask instead.") from exc
             return {"mask": store.save(mask), "parsing": store.save(parsing)}
@@ -178,6 +275,16 @@ def create_app(settings=None, token=None, engine=None):
         for key in (req.person, req.garment, req.mask):
             if key:
                 store.path(key)
+        if req.garment_reviewed and not req.preparation:
+            raise HTTPException(400, 'Reviewed references require a preparation ID.')
+        if req.preparation:
+            try: prepared = garment_worker.get(req.preparation)
+            except KeyError: raise HTTPException(409, 'Garment preparation expired. Extract and review again.')
+            r = prepared.get('result') or {}
+            if prepared['state'] != 'done' or r.get('garment') != req.garment or r.get('category') != req.category:
+                raise HTTPException(409, 'Prepared garment/category mismatch. Extract the current reference again.')
+            if not req.garment_reviewed:
+                raise HTTPException(400, 'Review the garment-only preview before generating.')
         try:
             return {"id": worker.submit(**req.model_dump())}
         except BusyError as exc:
@@ -205,8 +312,16 @@ def create_app(settings=None, token=None, engine=None):
         if camera:
             await asyncio.to_thread(camera.release)
         source = int(req.source) if req.source.isdigit() else req.source
+        if req.orientation is not None:
+            frames.set_orientation(req.orientation)
         camera = OpenCVCamera(source, frames).start()
         return {"status": "opening"}
+
+    @app.post("/api/camera/orientation", dependencies=auth)
+    async def camera_orientation(req: CameraOrientationRequest):
+        # Shared by preview and saved capture; never a browser-only CSS transform.
+        frames.set_orientation(req.orientation)
+        return frames.status()
 
     @app.post("/api/camera/offer", dependencies=auth)
     async def offer(req: OfferRequest):
@@ -231,10 +346,12 @@ def create_app(settings=None, token=None, engine=None):
         ok, frame = frames.read()
         if not ok:
             return Response(status_code=204)
-        # Small monitor preview; original captured frame is retained separately.
+        # Orient first (LatestFrame.read), then bound BOTH portrait/landscape preview.
+        # Capture retains the full oriented image, subject to its normal 2048px limit.
         h, w = frame.shape[:2]
-        if w > 800:
-            frame = cv2.resize(frame, (800, round(h*800/w)))
+        if max(w, h) > 800:
+            scale = 800 / max(w, h)
+            frame = cv2.resize(frame, (max(1, round(w*scale)), max(1, round(h*scale))))
         ok, buf = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 75])
         if not ok:
             raise HTTPException(500, "JPEG encode failed")
@@ -247,15 +364,17 @@ def create_app(settings=None, token=None, engine=None):
             raise HTTPException(409, "No fresh camera frame. Pair a phone or open a webcam.")
         image = bgr_to_pil(frame)
         image.thumbnail((2048, 2048))
-        return {"id": store.save(image)}
+        return {"id": store.save(image), "width":image.width, "height":image.height}
 
     @app.delete("/api/session", dependencies=auth)
     async def clear_session():
-        with worker.lock:
-            if any(j.finished is None for j in worker.jobs.values()) or mask_busy.locked():
+        with worker.lock, garment_worker.lock:
+            if (any(j.finished is None for j in worker.jobs.values()) or
+                    any(j.finished is None for j in garment_worker.jobs.values()) or mask_busy.locked()):
                 raise HTTPException(409, "Wait for jobs/masking to finish before clearing files")
             store.clear()
             worker.jobs.clear()
+            garment_worker.jobs.clear()
             parser = getattr(engine, "parser", None)
             if parser is not None:
                 parser.clear_cache()

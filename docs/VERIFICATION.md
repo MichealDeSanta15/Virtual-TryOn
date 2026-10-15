@@ -111,3 +111,80 @@ Chromium checks for the new controls/status/mobile layout pass. An actual saved
 tiny Diffusers .bin was loaded through the explicit format selector. These tests
 are not target-GPU benchmarks or validation of learned dress fidelity. See
 `SPEED_AND_DRESSES.md` for installation and the remaining acceptance work.
+
+
+## Follow-up: Friend 2 catalog integration
+
+**88 tests pass**, including the existing 44 tests and new budget, decimal price,
+filter preservation, stable upsert IDs, cache TTL/LRU, threading, image validation,
+robots/URL policy, import and API handoff checks. All three adapters parse offline
+HTML fixtures in Chromium. A browser test used an isolated, explicitly synthetic
+local catalog to exercise search -> thumbnail -> select -> actual garment asset ->
+dress controls; no fixture is installed as a production fallback.
+
+Live source observations and important limitations are recorded in
+`docs/CATALOG_INTEGRATION.md` and `docs/catalog/workspace-*.json`. In particular,
+initial Amazon image retrieval does not establish final metadata accuracy: a title
+selector issue was found and fixed, but the final live validation received HTTP 503.
+Myntra/Ajio policy/access checks stopped scraping. No new GPU synthesis or Windows
+browser test was performed here. GitHub was read only; no remote writes.
+
+
+## Follow-up: free live-first clothing sources
+
+**118 tests pass** (one pre-existing Starlette/httpx warning). New regressions cover
+strict feed prices/currency, availability and variant-colour/image mapping, category
+priority for maxi/midi skirts, bounded discovery, partial failures, fresh-only result
+isolation, repeated-query fetching, explicit saved mode, default source selection,
+source-failure isolation, 429 cooldown, redirect rejection and DNS-pinned public sockets.
+
+Real network probes returned decoded garment photos from No Nasties, Femmella, Nobero
+and The Summer House. Shirts/trousers succeeded on all four; dresses had no matching
+Nobero products within the bounded scan. CLI probes took 12.40–15.27 seconds in one
+sequence with limit=3, not a Windows benchmark or availability guarantee.
+
+The actual studio browser test used real live Femmella dresses (8 cards), waited for
+all real authenticated thumbnails to load, selected a valid garment asset, verified
+the existing dress controls, repeated the same live search with a newer observation
+timestamp, and checked explicit saved-only labelling, mobile width and no JS errors.
+No fixture was used as production catalog data. No final AI image was generated here.
+
+See `LIVE_CATALOG.md` and `catalog/live-source-verification.json` for exact results,
+initial failures/corrections and remaining limits. Final compileall and JS syntax
+checks passed. Windows/GPU stack is preserved but not rerun in this environment.
+
+
+## Follow-up: garment-only reference and dress mask preparation
+
+**131 tests pass** (one existing dependency warning). Adds category-aware reference
+segmentation, inner clothing-panel retention without filling skin/background holes,
+manual selection/crop/colour contracts, alpha handling, opt-in proximal sleeve masks,
+API review/category binding and missing-parser failure tests. No original model-photo
+fallback is used by the studio on extraction failure.
+
+The actual pinned clothes parser ran on CPU on the user's screenshot-cropped brown
+dress. Its final extracted reference removes the visible wearer/background; about
+44.04% of source pixels are retained (not an accuracy score). Browser upload and real
+saved-catalog selection both exercised learned extraction, review gating and category
+invalidation. Manual correction, actual CPU person masking and mobile layout checks
+passed. Compileall and both JS syntax checks passed.
+
+No new GPU diffusion/Windows execution or dress-fidelity test was performed. See
+`GARMENT_AND_DRESS_FIX.md` and `garment-preparation-verification.json`. The source
+reference/editor images used in testing are not included in the source archives.
+
+
+## Follow-up: portrait camera orientation
+
+Added 16 passing camera-orientation tests and an actual browser/API check with a
+synthetic sideways test frame (768×512). Preview and saved capture/editor both became
+512×768 portrait without CSS rotation, stretching or cropping. Source-mode reset,
+remembered preference, mobile width and no JS errors were verified. The synthetic
+camera fixture is not a production source and is excluded from source archives.
+
+Current refreshed Linux sandbox result: **137 passed, 2 skipped, 1 warning (5.28s)**.
+Torch is not installed in this sandbox instance: the existing offload-runtime module
+and one staged-placement test were skipped. Earlier GPU/memory checks are historical,
+not rerun here. No physical phone/Windows camera or GPU inference test was performed.
+Compilation and both JavaScript syntax checks passed. See `CAMERA_ORIENTATION.md`
+and `camera-orientation-verification.json` for details and physical-rotation limits.

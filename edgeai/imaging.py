@@ -17,7 +17,15 @@ def pil_to_bgr(image):
 
 def load_rgb(path):
     with Image.open(path) as image:
-        return ImageOps.exif_transpose(image).convert("RGB")
+        return to_rgb_white(ImageOps.exif_transpose(image))
+
+def to_rgb_white(image):
+    if image.mode in ('RGBA', 'LA') or 'transparency' in image.info:
+        rgba = image.convert('RGBA')
+        out = Image.new('RGB', image.size, 'white')
+        out.paste(rgba, mask=rgba.getchannel('A'))
+        return out
+    return image.convert('RGB')
 
 @dataclass(frozen=True)
 class Letterbox:

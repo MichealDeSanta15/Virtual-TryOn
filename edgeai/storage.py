@@ -4,6 +4,7 @@ from io import BytesIO
 import threading
 import uuid
 from PIL import Image, ImageOps, UnidentifiedImageError
+from .imaging import to_rgb_white
 
 
 class Storage:
@@ -38,7 +39,8 @@ class Storage:
                 if im.width * im.height > 20_000_000 or min(im.size) < 16:
                     raise ValueError("Image must be 16px or larger and at most 20 megapixels")
                 im.load()
-                image = ImageOps.exif_transpose(im).convert("L" if mask else "RGB")
+                oriented = ImageOps.exif_transpose(im)
+                image = oriented.convert("L") if mask else to_rgb_white(oriented)
                 if max(image.size) > 2048:
                     # Do not silently resize masks and break image correspondence.
                     raise ValueError("Resize image to at most 2048 pixels on its longest side")

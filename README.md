@@ -3,7 +3,22 @@
 **Member 3 delivery: phone camera, diffusion try-on, optimization and integration.**
 Target: **Windows · RTX 5060 8 GB · academic/non-commercial use**.
 
-**Latest update:** [GPU residency and dress-mask controls](docs/SPEED_AND_DRESSES.md).
+**Portrait camera update:** [Phone orientation, preview and capture](docs/CAMERA_ORIENTATION.md).
+Rotate the actual camera pixels consistently for the monitor and captured person image;
+already-portrait frames are not double-rotated by the portrait modes.
+
+**Garment / dress update:** [Garment-only reference preparation and sleeve masks](docs/GARMENT_AND_DRESS_FIX.md).
+Selecting/uploading a model-worn reference now extracts clothing on CPU, offers a keep/erase
+editor and requires review before studio generation. No new weights required.
+
+**Free live catalog update:** [Install the live-first scraper](docs/LIVE_CATALOG.md).
+Fresh public-feed searches from No Nasties, Femmella, Nobero and The Summer House;
+real garment photos feed into the existing try-on flow. No API key or paid provider.
+Run `scripts/setup_catalog.ps1`; no GPU/model reinstallation or Chromium needed for
+the default stores. Live failures never silently return saved products.
+[Full catalog/API guide](docs/CATALOG_INTEGRATION.md).
+
+**GPU/dress update:** [GPU residency and dress-mask controls](docs/SPEED_AND_DRESSES.md).
 Use `$env:EDGEAI_MEMORY="staged"` before startup for whole-model phase offload;
 this takes precedence over the older `EDGEAI_OFFLOAD` flag. New long-dress mask
 controls and a 576×768/35-step Dress detail preset are available.
@@ -86,7 +101,7 @@ result = try_on_garment(frame, product["image_path"], category="upper", preset="
 
 `generate_tryon(frame, garment_paths)` returns **a list of independent alternatives**.
 Use [the integration guide](docs/INTEGRATION.md) for the HTTP client and Qt bridge.
-Member 2 retains ownership of scraping; this project does not bypass retailer restrictions.
+The repaired Member 2 catalog is now integrated. See its guide for live-site limitations; this project does not bypass retailer restrictions.
 
 ## Why this differs from your original plan
 
@@ -143,6 +158,8 @@ Bind to localhost unless phone access is needed. For LAN access, use trusted Wi-
 HTTPS, a fresh random pairing token and a Windows Private-network firewall rule.
 Do not internet-expose this research server. The token grants full studio access.
 
-Academic/non-commercial distribution under **CC BY-NC-SA 4.0** for this integration
+The original team scraper code has no confirmed license grant in the reviewed branch;
+see `docs/catalog/AUDIT.md` before redistributing it. Academic/non-commercial
+distribution under **CC BY-NC-SA 4.0** for the previously supplied integration
 and upstream CatVTON portions; other dependencies/weights retain their own licenses.
 See [attribution and model terms](docs/LICENSES.md).

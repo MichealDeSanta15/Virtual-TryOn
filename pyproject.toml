@@ -9,7 +9,7 @@ description = "Local phone camera and asynchronous CatVTON integration for an ac
 requires-python = ">=3.10"
 
 [tool.setuptools.packages.find]
-include = ["edgeai*"]
+include = ["edgeai*", "clothing_pipeline*"]
 
 [tool.setuptools.package-data]
 edgeai = ["web/*", "vendor/catvton/LICENSE", "vendor/catvton/resource/img/*"]

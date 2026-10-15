@@ -4,8 +4,9 @@ import threading
 import time
 from dataclasses import dataclass
 from PIL import Image
+import numpy as np
 from .config import Settings, CATEGORIES, PRESETS
-from .imaging import Letterbox, validate_mask, preserve_outside, bgr_to_pil, pil_to_bgr, load_rgb
+from .imaging import Letterbox, validate_mask, preserve_outside, bgr_to_pil, pil_to_bgr, load_rgb, to_rgb_white
 from .masking import ClothingParser
 
 
@@ -16,6 +17,7 @@ class TryOnResult:
     raw: Image.Image
     metrics: dict
     parsing: Image.Image | None = None
+    condition: Image.Image | None = None
 
 
 class TryOnEngine:
@@ -71,23 +73,42 @@ class TryOnEngine:
         self.pipeline = pipe
         self.load_seconds = time.perf_counter() - start
 
-    def make_mask(self, person, category, profile="standard", hem_fraction=.92, flare=.2):
+    def make_mask(self, person, category, profile="standard", hem_fraction=.92, flare=.2, sleeves=False):
         if category not in CATEGORIES:
             raise ValueError(f"Unknown category: {category}")
         with self.lock:
             # CPU parser, not retained on the 8 GB GPU.
             small = person.copy()
             small.thumbnail((768, 1024), Image.Resampling.LANCZOS)
-            mask, parsing = self.parser(small, category, profile=profile, hem_fraction=hem_fraction, flare=flare)
+            mask, parsing = self.parser(small, category, profile=profile, hem_fraction=hem_fraction, flare=flare, sleeves=sleeves)
             return (mask.resize(person.size, Image.Resampling.NEAREST),
                     parsing.resize(person.size, Image.Resampling.NEAREST))
+
+    def prepare_garment(self, garment, category, mask=None, progress=None):
+        from .garment import cloth_mask, prepare_from_mask
+        notify = progress or (lambda stage: None)
+        notes = []
+        garment = to_rgb_white(garment)
+        if mask is None:
+            notify('extracting_clothing_on_cpu')
+            with self.lock:
+                small = garment.copy()
+                small.thumbnail((768, 1024), Image.Resampling.LANCZOS)
+                labels = self.parser.labels(small)
+                mask, notes = cloth_mask(labels, category)
+                mask = mask.resize(garment.size, Image.Resampling.NEAREST)
+            method = 'semantic_clothing'
+        else:
+            notify('applying_reviewed_reference_mask')
+            method = 'manual_mask'
+        return prepare_from_mask(garment, mask, category, method, notes)
 
     def generate(self, person, garment, category="upper", mask=None, preset="draft", seed=42, progress=None):
         if category not in CATEGORIES or preset not in PRESETS:
             raise ValueError("Unsupported category or quality preset")
         if not 0 <= seed < 2**32:
             raise ValueError("Seed must be between 0 and 4294967295")
-        person, garment = person.convert("RGB"), garment.convert("RGB")
+        person, garment = to_rgb_white(person), to_rgb_white(garment)
         notify = progress or (lambda stage: None)
         with self.lock:
             start = time.perf_counter()
@@ -145,13 +166,15 @@ class TryOnEngine:
                        "peak_allocated_gb": round(torch.cuda.max_memory_allocated()/1024**3, 3),
                        "peak_reserved_gb": round(torch.cuda.max_memory_reserved()/1024**3, 3),
                        "resolution": [w, h], "steps": steps, "seed": seed,
-                       "category": category, "offload": self.settings.effective_memory_mode != "resident",
+                       "category": category, "guidance_scale": self.settings.guidance,
+                       "mask_fraction": round(float(np.asarray(mask).mean()/255), 4),
+                       "offload": self.settings.effective_memory_mode != "resident",
                        "memory_mode": self.settings.effective_memory_mode,
                        "gpu": torch.cuda.get_device_name(), "torch": torch.__version__,
                        "cuda": torch.version.cuda, "mode": "diffusion_snapshot"}
             if placement is not None:
                 metrics.update(placement.metrics())
-            return TryOnResult(result, mask, raw, metrics, parsing)
+            return TryOnResult(result, mask, raw, metrics, parsing, c.copy())
 
     def try_on_garment(self, frame, garment_path, category="upper", **kwargs):
         result = self.generate(bgr_to_pil(frame), load_rgb(garment_path), category, **kwargs)

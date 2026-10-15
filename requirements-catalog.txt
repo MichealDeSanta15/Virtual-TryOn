@@ -1,0 +1,6 @@
+# Additive only: do NOT install the upstream repo's broad torch/xformers requirements.
+playwright>=1.49,<2
+aiohttp>=3.10,<4
+protego>=0.3,<1
+requests>=2.32,<3
+urllib3>=2.2,<3

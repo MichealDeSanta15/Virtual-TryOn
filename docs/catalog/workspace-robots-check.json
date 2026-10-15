@@ -1,0 +1,20 @@
+[
+  {
+    "source": "myntra",
+    "search_url": "https://www.myntra.com/party-dress",
+    "robots_allows": false,
+    "reason": "Robots unavailable/blocked (HTTP 200); not scraping"
+  },
+  {
+    "source": "ajio",
+    "search_url": "https://www.ajio.com/search/?text=party+dress",
+    "robots_allows": false,
+    "reason": "Robots unavailable/blocked (HTTP 403); not scraping"
+  },
+  {
+    "source": "amazon",
+    "search_url": "https://www.amazon.in/s?k=party+dress&i=apparel",
+    "robots_allows": true,
+    "reason": "Loaded robots policy"
+  }
+]

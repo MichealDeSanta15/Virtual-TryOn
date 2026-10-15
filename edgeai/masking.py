@@ -3,7 +3,7 @@ import hashlib
 import numpy as np
 import cv2
 from PIL import Image
-from .imaging import validate_mask
+from .imaging import validate_mask, to_rgb_white
 from .config import CATEGORIES
 
 # mattmdjaga/segformer_b2_clothes class IDs (not generic COCO labels).
@@ -57,7 +57,44 @@ def long_dress_envelope(labels, hem_fraction=.92, flare=.2):
     return envelope
 
 
-def mask_from_labels(labels, category, dilation=15, profile='standard', hem_fraction=.92, flare=.2):
+def short_sleeve_proposal(labels):
+    """Conservative, opt-in proximal-arm edit region; NOT hand/pose estimation.
+
+    Follow each connected arm from its top edge rather than painting all arm skin.
+    Keep the distal portion protected. Bent/occluded poses still require review.
+    """
+    from collections import deque
+    out = np.zeros(labels.shape, np.uint8)
+    torso_y, _ = np.where(np.isin(labels, [4, 7]))
+    if not len(torso_y):
+        return out
+    # Ignore detached hand-only regions below the upper torso.
+    shoulder_limit = float(torso_y.min()+.30*(torso_y.max()-torso_y.min()))
+    h, w = labels.shape
+    for arm_id in (14, 15):
+        n, components, stats, _ = cv2.connectedComponentsWithStats((labels==arm_id).astype(np.uint8), 8)
+        for k in range(1, n):
+            arm = components==k
+            yy, xx = np.where(arm)
+            if len(yy)<32 or yy.min()>shoulder_limit:
+                continue
+            distance = np.full(labels.shape, -1, np.int32)
+            seeds = [(int(y),int(x)) for y,x in zip(yy,xx) if y<=yy.min()+1]
+            queue = deque(seeds)
+            for y,x in seeds: distance[y,x]=0
+            while queue:
+                y,x=queue.popleft()
+                for ny,nx in ((y-1,x),(y+1,x),(y,x-1),(y,x+1)):
+                    if 0<=ny<h and 0<=nx<w and arm[ny,nx] and distance[ny,nx]<0:
+                        distance[ny,nx]=distance[y,x]+1
+                        queue.append((ny,nx))
+            extent = int(distance.max())
+            if extent>=12:
+                out[(distance>=0)&(distance<=extent*.45)]=1
+    return out
+
+
+def mask_from_labels(labels, category, dilation=15, profile='standard', hem_fraction=.92, flare=.2, sleeves=False):
     if category not in CATEGORIES:
         raise ValueError(f"Category must be one of {CATEGORIES}")
     if profile not in ('standard', 'long_dress'):
@@ -72,7 +109,13 @@ def mask_from_labels(labels, category, dilation=15, profile='standard', hem_frac
     binary = cv2.dilate(binary, kernel)
     if profile == 'long_dress':
         binary |= long_dress_envelope(labels, hem_fraction, flare)
+    if sleeves and category == 'lower':
+        raise ValueError('Sleeve proposal is only for tops and dresses')
+    sleeve = short_sleeve_proposal(labels) if sleeves else np.zeros(labels.shape, np.uint8)
+    if sleeves:
+        binary |= cv2.dilate(sleeve, kernel)
     protected = np.isin(labels, PROTECTED).astype(np.uint8)
+    protected[sleeve > 0] = 0
     protected = cv2.dilate(protected, np.ones((3, 3), np.uint8))
     binary[protected > 0] = 0
     return validate_mask(Image.fromarray(binary * 255), (labels.shape[1], labels.shape[0]))
@@ -98,9 +141,11 @@ class ClothingParser:
         self.processor = AutoImageProcessor.from_pretrained(str(path), local_files_only=True, use_fast=False)
         self.model = AutoModelForSemanticSegmentation.from_pretrained(str(path), local_files_only=True).eval().to("cpu")
 
-    def __call__(self, image, category, profile="standard", hem_fraction=.92, flare=.2):
+    def labels(self, image):
+        """Shared CPU segmentation for person masks and garment-only extraction."""
         import torch
         self.load()
+        image = to_rgb_white(image)
         key = (image.size, hashlib.blake2b(image.tobytes(), digest_size=16).digest())
         if self._labels_cache is not None and self._labels_cache[0] == key:
             labels = self._labels_cache[1]
@@ -112,8 +157,12 @@ class ClothingParser:
                 labels = logits.argmax(dim=1)[0].cpu().numpy()
             # One image only. No disk cache of personal images.
             self._labels_cache = (key, labels)
+        return labels.copy()
+
+    def __call__(self, image, category, profile="standard", hem_fraction=.92, flare=.2, sleeves=False):
+        labels = self.labels(image)
         mask = mask_from_labels(labels, category, max(9, int(min(image.size)*.025)) | 1,
-                                profile=profile, hem_fraction=hem_fraction, flare=flare)
+                                profile=profile, hem_fraction=hem_fraction, flare=flare, sleeves=sleeves)
         # Stable, deterministic debug palette.
         palette = np.array([(i*43 % 256, i*97 % 256, i*167 % 256) for i in range(18)], dtype=np.uint8)
         return mask, Image.fromarray(palette[labels])

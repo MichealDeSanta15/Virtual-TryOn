@@ -1,5 +1,11 @@
 # Integration handoff — Member 1 and Member 2
 
+**Update:** Friend 2’s reviewed branch is integrated; the catalog now defaults to
+fresh free-store feeds on every search. See [LIVE_CATALOG.md](LIVE_CATALOG.md).
+See [CATALOG_INTEGRATION.md](CATALOG_INTEGRATION.md) for search/selection endpoints,
+installation, supported contracts and live-site limits. Earlier handoff examples below
+remain useful, but the catalog is no longer an external-only dependency.
+
 ## Recommended process boundary
 
 Run `main.py` **once** as the camera/AI service. Member 1's PyQt GUI calls its authenticated
@@ -39,7 +45,7 @@ Retain your `search_clothes(event, budget) -> list[dict]` interface and add
 `tryon_category` or let the user choose. Do not guess category from a title silently.
 Use clean, centered garment-only photos where possible. Keep category/source metadata,
 image rights and scraping compliance in Member 2's layer. `examples/scraper_adapter.py`
-validates the local handoff. This delivery does not implement the scraper.
+validates the local handoff. The repaired catalog package now implements this handoff; see the catalog integration guide.
 
 ## Direct Python interface
 

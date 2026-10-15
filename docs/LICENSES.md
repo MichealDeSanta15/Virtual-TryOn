@@ -49,3 +49,13 @@ or a substitute for checking the original licenses and data/image permissions.
 Use consenting subjects and images you have permission to process. No faces, product
 photos or copyrighted retail datasets are bundled as demo assets. Generated images are
 appearance simulations; don't present them as guaranteed fit or unaltered photographs.
+
+
+## User-provided team catalog code
+
+The integrated `clothing_pipeline` derives from the user-provided Virtual-TryOn
+repository/branch recorded in `docs/catalog/upstream.json`. The reviewed branch has
+no explicit LICENSE file; its README's "MIT (or choose your own)" is not treated as
+a confirmed MIT license. Preserve team attribution and obtain explicit permission
+before public redistribution/commercial use. No project-root license claim overrides
+those original rights or retailer image rights.

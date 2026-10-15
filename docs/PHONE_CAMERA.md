@@ -1,5 +1,9 @@
 # Phone → laptop camera
 
+**Portrait update:** See [CAMERA_ORIENTATION.md](CAMERA_ORIENTATION.md) for the new
+Frame orientation controls. Preview and saved capture now share an optional pixel
+rotation; this does not infer physical phone tilt from an MJPEG feed.
+
 ## Path A: IP Webcam / DroidCam / laptop webcam (start here)
 
 1. Phone and laptop use the same **trusted** private Wi-Fi.

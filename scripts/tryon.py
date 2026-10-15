@@ -27,6 +27,7 @@ def main():
                           preset=args.preset,seed=args.seed,progress=print)
         r.image.save(out/f'result-{i+1}.png');r.mask.save(out/f'mask-{i+1}.png');r.raw.save(out/f'raw-{i+1}.png')
         if r.parsing:r.parsing.save(out/f'parsing-{i+1}.png')
+        if r.condition:r.condition.save(out/f'condition-{i+1}.png')
         records.append({'run':i+1,'cold_start':i==0,**r.metrics})
         (out/'benchmark.json').write_text(json.dumps(records,indent=2))
     print(f'Wrote {out}. First run includes model startup; later runs reuse loaded weights.')

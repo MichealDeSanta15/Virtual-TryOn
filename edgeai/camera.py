@@ -4,6 +4,28 @@ import time
 import cv2
 
 
+ORIENTATIONS = ('source', 'portrait_cw', 'portrait_ccw', 'cw90', 'ccw90', '180')
+
+
+def rotation_for_shape(shape, orientation):
+    """Clockwise degrees. Portrait modes use dimensions, NOT a phone tilt sensor."""
+    if orientation not in ORIENTATIONS:
+        raise ValueError('Unknown camera orientation')
+    h, w = shape[:2]
+    if orientation in ('portrait_cw', 'portrait_ccw'):
+        return (90 if orientation == 'portrait_cw' else 270) if w > h else 0
+    return {'source':0, 'cw90':90, 'ccw90':270, '180':180}[orientation]
+
+
+def orient_frame(frame, orientation):
+    """Copy/rotate pixels without stretching, cropping, mirroring or modifying input."""
+    degrees = rotation_for_shape(frame.shape, orientation)
+    if not degrees:
+        return frame.copy()
+    flag = {90:cv2.ROTATE_90_CLOCKWISE, 180:cv2.ROTATE_180, 270:cv2.ROTATE_90_COUNTERCLOCKWISE}[degrees]
+    return cv2.rotate(frame, flag)
+
+
 class LatestFrame:
     def __init__(self):
         self._condition = threading.Condition()
@@ -15,6 +37,23 @@ class LatestFrame:
         self.source = "none"
         self.error = None
         self.closed = False
+        self.orientation = "source"
+        self.orientation_revision = 0
+
+    def set_orientation(self, orientation):
+        if orientation not in ORIENTATIONS:
+            raise ValueError('Unknown camera orientation')
+        with self._condition:
+            if self.closed:
+                raise RuntimeError('Camera frame store is closed')
+            if orientation != self.orientation:
+                self.orientation = orientation
+                self.orientation_revision += 1
+                # Wake native consumers to redraw, without pretending a new camera
+                # frame arrived: received/timestamp stay unchanged.
+                if self._frame is not None:
+                    self.sequence += 1
+                self._condition.notify_all()
 
     def put(self, frame, source="camera"):
         if frame is None or frame.size == 0:
@@ -33,18 +72,23 @@ class LatestFrame:
     def read(self, max_age=3.0):
         with self._condition:
             valid = not self.closed and self._frame is not None and time.monotonic()-self.timestamp <= max_age
-            return (True, self._frame.copy()) if valid else (False, None)
+            return (True, orient_frame(self._frame, self.orientation)) if valid else (False, None)
 
     def read_new(self, after=0, timeout=1.0):
         with self._condition:
             self._condition.wait_for(lambda: self.sequence > after or self.closed, timeout)
             if self.closed or self.sequence <= after:
                 return False, None, after
-            return True, self._frame.copy(), self.sequence
+            return True, orient_frame(self._frame, self.orientation), self.sequence
 
     def status(self):
         with self._condition:
+            size = [self._frame.shape[1], self._frame.shape[0]] if self._frame is not None else None
+            degrees = rotation_for_shape(self._frame.shape, self.orientation) if size else 0
+            output = list(reversed(size)) if size and degrees in (90, 270) else size
             return {"source": self.source, "sequence": self.sequence,
+                    "orientation":self.orientation, "orientation_revision":self.orientation_revision,
+                    "rotation_degrees":degrees, "input_size":size, "output_size":output,
                     "age_seconds": round(time.monotonic()-self.timestamp, 2) if self.timestamp else None,
                     "average_receive_fps": round(self.received/max(.001, time.monotonic()-self.started), 1),
                     "error": self.error}
@@ -57,6 +101,7 @@ class LatestFrame:
             self._frame = None
             self.timestamp = 0
             self.source = "none"
+            self.error = None
 
     def release(self):
         with self._condition:

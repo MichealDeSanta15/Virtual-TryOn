@@ -44,6 +44,41 @@ class EdgeAIClient:
             time.sleep(.5)
         raise TimeoutError('Waiting timed out; the job may still be running. Cancel it explicitly if needed.')
 
+    def prepare_garment(self, garment, category="upper", mask=None):
+        """Prepare an uploaded SOURCE asset; optional mask is reference-photo geometry."""
+        return self._json('POST','/api/garments/prepare',json={
+            'garment':garment,'category':category,'mask':mask})['id']
+
+    def wait_garment(self, job_id, progress=None, timeout=180):
+        """Returns preview/mask asset IDs. The caller must show them for human review."""
+        start=time.monotonic()
+        while time.monotonic()-start < timeout:
+            job=self._json('GET','/api/garments/prepare/'+job_id)
+            if progress: progress(job['state'])
+            if job['state']=='done': return job['result']
+            if job['state'] in ('failed','cancelled'):
+                raise RuntimeError(job['error'] or 'Garment preparation cancelled')
+            time.sleep(.5)
+        raise TimeoutError('Garment preparation may still be running; poll the same job ID again')
+
+    def search_catalog(self, event, budget="5000", live=True, source=None, **filters):
+        """Submit a catalog search. Poll from a worker; no image is sent to retailers."""
+        return self._json('POST','/api/catalog/search',json={
+            'event':event,'budget':str(budget),'live':live,'source':source,**filters})['id']
+
+    def wait_catalog(self, job_id, progress=None, timeout=180):
+        start=time.monotonic()
+        while time.monotonic()-start < timeout:
+            job=self._json('GET','/api/catalog/search/'+job_id)
+            if progress:progress(job['state'])
+            if job['state']=='done':return job['result']
+            if job['state'] in ('failed','cancelled'):raise RuntimeError(job['error'] or 'Search cancelled')
+            time.sleep(.5)
+        raise TimeoutError('Catalog polling timed out; the service may still be finishing the search')
+
+    def select_catalog_product(self, product_id):
+        return self._json('POST',f'/api/catalog/products/{int(product_id)}/select')
+
     def cancel(self,job_id):return self._json('DELETE','/api/jobs/'+job_id)
     def capture(self):return self._json('POST','/api/camera/capture')['id']
     def close(self):self.http.close()
