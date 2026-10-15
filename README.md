@@ -3,10 +3,13 @@
 **Member 3 delivery: phone camera, diffusion try-on, optimization and integration.**
 Target: **Windows · RTX 5060 8 GB · academic/non-commercial use**.
 
+<<<<<<< HEAD
 **Portrait camera update:** [Phone orientation, preview and capture](docs/CAMERA_ORIENTATION.md).
 Rotate the actual camera pixels consistently for the monitor and captured person image;
 already-portrait frames are not double-rotated by the portrait modes.
 
+=======
+>>>>>>> origin/main
 **Garment / dress update:** [Garment-only reference preparation and sleeve masks](docs/GARMENT_AND_DRESS_FIX.md).
 Selecting/uploading a model-worn reference now extracts clothing on CPU, offers a keep/erase
 editor and requires review before studio generation. No new weights required.

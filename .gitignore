@@ -10,3 +10,15 @@ data/
 # This is source code, not a generated cache directory (important in friend's repo).
 !clothing_pipeline/cache/
 !clothing_pipeline/cache/*.py
+<<<<<<< HEAD
+=======
+
+# Publishing safeguards
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.zip
+
+>>>>>>> origin/main

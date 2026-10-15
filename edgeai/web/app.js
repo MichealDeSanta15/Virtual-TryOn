@@ -20,7 +20,11 @@ async function showAsset(id,key){const blob=await api('/api/assets/'+key);if(ima
 async function normalize(file){if(!file)throw Error('Choose an image first');if(file.size>15*1024**2)throw Error('Image exceeds 15 MB');const u=URL.createObjectURL(file);try{const im=await loadImage(u);const c=document.createElement('canvas');const s=Math.min(1,1600/Math.max(im.width,im.height));c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').fillStyle='white';c.getContext('2d').fillRect(0,0,c.width,c.height);c.getContext('2d').drawImage(im,0,0,c.width,c.height);return await new Promise(r=>c.toBlob(r,'image/png'));}finally{URL.revokeObjectURL(u);}}
 function redraw(){if(!personImage)return;ctx.clearRect(0,0,$('editor').width,$('editor').height);ctx.drawImage(personImage,0,0);ctx.save();ctx.globalAlpha=.48;ctx.drawImage(maskCanvas,0,0);ctx.restore();}
 async function setPerson(id){personId=id;personImage=await assetImage(id);$('editor').width=maskCanvas.width=personImage.width;$('editor').height=maskCanvas.height=personImage.height;maskCtx.clearRect(0,0,maskCanvas.width,maskCanvas.height);$('personEmpty').hidden=true;$('editorWrap').hidden=false;$('personSize').textContent=personImage.width+' × '+personImage.height;redraw();switchMode(false);}
+<<<<<<< HEAD
 function switchMode(camera){cameraMode=camera;$('cameraArea').hidden=!camera;$('photoArea').hidden=camera;$('cameraTab').classList.toggle('selected',camera);$('photoTab').classList.toggle('selected',!camera);if(camera&&token)applyCameraOrientation().catch(e=>toast(e.message));}
+=======
+function switchMode(camera){cameraMode=camera;$('cameraArea').hidden=!camera;$('photoArea').hidden=camera;$('cameraTab').classList.toggle('selected',camera);$('photoTab').classList.toggle('selected',!camera);}
+>>>>>>> origin/main
 function hasMask(){return maskCtx.getImageData(0,0,maskCanvas.width,maskCanvas.height).data.some((v,i)=>i%4===3&&v>127);}
 function exportMask(){const c=document.createElement('canvas');c.width=maskCanvas.width;c.height=maskCanvas.height;const x=c.getContext('2d');x.fillStyle='black';x.fillRect(0,0,c.width,c.height);x.drawImage(maskCanvas,0,0);return new Promise(r=>c.toBlob(r,'image/png'));}
 let prev=null;
@@ -30,7 +34,11 @@ $('editor').onpointerdown=e=>{if(!personImage)return;painting=true;prev=null;$('
 function safe(fn){return async(...args)=>{try{await fn(...args);}catch(e){toast(e.message);}};}
 $('pairOpen').onclick=()=>$('pairDialog').showModal();$('pairClose').onclick=()=>$('pairDialog').close();
 $('pairForm').onsubmit=safe(async e=>{e.preventDefault();token=$('tokenInput').value.trim();await api('/api/status');sessionStorage.setItem('edgeai_token',token);$('tokenInput').value='';$('pairDialog').close();await status();toast('Browser paired. Upload your images to begin.');});
+<<<<<<< HEAD
 async function status(){if(!token)return;try{const s=await api('/api/status');$('connection').textContent='● Browser paired · local service';if(cameraMode&&!cameraOrientationPending)updateCameraFrameInfo(s.camera);$('modelStatus').textContent=s.models_present?(s.pipeline_loaded?'Model loaded':'Weights found · loads on first use'):'Weights missing · setup required';
+=======
+async function status(){if(!token)return;try{const s=await api('/api/status');$('connection').textContent='● Browser paired · local service';$('modelStatus').textContent=s.models_present?(s.pipeline_loaded?'Model loaded':'Weights found · loads on first use'):'Weights missing · setup required';
+>>>>>>> origin/main
 const mode=s.memory_mode||(s.offload?'sequential':'resident');$('memoryMode').textContent='GPU MEMORY MODE · '+mode.toUpperCase();
 $('memoryHint').textContent=mode==='staged'?'Whole UNet stays on GPU during all denoising steps. VAE and safety checker run in separate phases. Low VRAM between requests is normal.':mode==='resident'?'All pipeline weights remain on GPU. Fastest transfer path, but highest memory pressure. Use Draft/Balanced first.':'Sequential layer offload: minimum VRAM, frequent transfers. For more GPU residency, restart with EDGEAI_MEMORY=staged.';}catch(e){$('connection').textContent='Pairing or connection needed';}}
 $('personInput').onchange=safe(async e=>{const b=await normalize(e.target.files[0]);await setPerson(await upload(b));e.target.value='';});
@@ -54,6 +62,7 @@ $('cancel').onclick=safe(async()=>{if(currentJob){await api('/api/jobs/'+current
 async function download(key,name){if(!key)return;const b=await api('/api/assets/'+key);const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);}
 $('download').onclick=safe(()=>download(lastResult?.image,'form-tryon.png'));$('downloadMask').onclick=safe(()=>download(lastResult?.mask,'form-mask.png'));$('downloadRaw').onclick=safe(()=>download(lastResult?.raw,'form-raw-output.png'));$('downloadCondition').onclick=safe(()=>download(lastResult?.condition,'form-actual-garment-input.png'));
 $('photoTab').onclick=()=>switchMode(false);$('cameraTab').onclick=()=>switchMode(true);
+<<<<<<< HEAD
 let cameraViewEpoch=0,cameraOrientationPending=false,cameraOrientationReady=false;
 const cameraModes=['source','portrait_cw','portrait_ccw','cw90','ccw90','180'];
 const rememberedCameraMode=sessionStorage.getItem('edgeai_camera_orientation');
@@ -101,6 +110,12 @@ async function preview(){
  }
  setTimeout(preview,160);
 }
+=======
+$('openCamera').onclick=safe(async()=>{await api('/api/camera/open',{method:'POST',body:{source:$('cameraSource').value}});toast('Opening camera…');});
+$('closeCamera').onclick=safe(async()=>{await api('/api/camera/close',{method:'POST'});$('cameraPreview').hidden=true;$('cameraEmpty').hidden=false;});
+$('capture').onclick=safe(async()=>{const r=await api('/api/camera/capture',{method:'POST'});await setPerson(r.id);toast('Frame captured. The result will match this pose, not subsequent movement.');});
+async function preview(){if(cameraMode&&token){try{const b=await api('/api/camera/frame');if(b){if(previewURL)URL.revokeObjectURL(previewURL);previewURL=URL.createObjectURL(b);$('cameraPreview').src=previewURL;$('cameraPreview').hidden=false;$('cameraEmpty').hidden=true;}else{$('cameraPreview').hidden=true;$('cameraEmpty').hidden=false;}}catch(e){/* status panel reports connectivity; no repeated toasts */}}setTimeout(preview,160);}
+>>>>>>> origin/main
 $('clearSession').onclick=safe(async()=>{if(!confirm('Delete all uploaded, captured and generated images in this local session?'))return;await api('/api/session',{method:'DELETE'});location.reload();});
 status();statusTimer=setInterval(status,12000);preview();
 

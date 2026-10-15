@@ -61,6 +61,7 @@ class MaskRequest(BaseModel):
     sleeves: bool = False
 
 
+<<<<<<< HEAD
 CameraOrientation = Literal["source", "portrait_cw", "portrait_ccw", "cw90", "ccw90", "180"]
 
 
@@ -71,6 +72,10 @@ class CameraRequest(BaseModel):
 
 class CameraOrientationRequest(BaseModel):
     orientation: CameraOrientation
+=======
+class CameraRequest(BaseModel):
+    source: str = Field(default="0", max_length=512)
+>>>>>>> origin/main
 
 
 class OfferRequest(BaseModel):
@@ -312,6 +317,7 @@ def create_app(settings=None, token=None, engine=None):
         if camera:
             await asyncio.to_thread(camera.release)
         source = int(req.source) if req.source.isdigit() else req.source
+<<<<<<< HEAD
         if req.orientation is not None:
             frames.set_orientation(req.orientation)
         camera = OpenCVCamera(source, frames).start()
@@ -323,6 +329,11 @@ def create_app(settings=None, token=None, engine=None):
         frames.set_orientation(req.orientation)
         return frames.status()
 
+=======
+        camera = OpenCVCamera(source, frames).start()
+        return {"status": "opening"}
+
+>>>>>>> origin/main
     @app.post("/api/camera/offer", dependencies=auth)
     async def offer(req: OfferRequest):
         nonlocal camera
@@ -346,12 +357,19 @@ def create_app(settings=None, token=None, engine=None):
         ok, frame = frames.read()
         if not ok:
             return Response(status_code=204)
+<<<<<<< HEAD
         # Orient first (LatestFrame.read), then bound BOTH portrait/landscape preview.
         # Capture retains the full oriented image, subject to its normal 2048px limit.
         h, w = frame.shape[:2]
         if max(w, h) > 800:
             scale = 800 / max(w, h)
             frame = cv2.resize(frame, (max(1, round(w*scale)), max(1, round(h*scale))))
+=======
+        # Small monitor preview; original captured frame is retained separately.
+        h, w = frame.shape[:2]
+        if w > 800:
+            frame = cv2.resize(frame, (800, round(h*800/w)))
+>>>>>>> origin/main
         ok, buf = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 75])
         if not ok:
             raise HTTPException(500, "JPEG encode failed")
@@ -364,7 +382,11 @@ def create_app(settings=None, token=None, engine=None):
             raise HTTPException(409, "No fresh camera frame. Pair a phone or open a webcam.")
         image = bgr_to_pil(frame)
         image.thumbnail((2048, 2048))
+<<<<<<< HEAD
         return {"id": store.save(image), "width":image.width, "height":image.height}
+=======
+        return {"id": store.save(image)}
+>>>>>>> origin/main
 
     @app.delete("/api/session", dependencies=auth)
     async def clear_session():

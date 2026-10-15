@@ -4,6 +4,7 @@ import time
 import cv2
 
 
+<<<<<<< HEAD
 ORIENTATIONS = ('source', 'portrait_cw', 'portrait_ccw', 'cw90', 'ccw90', '180')
 
 
@@ -26,6 +27,8 @@ def orient_frame(frame, orientation):
     return cv2.rotate(frame, flag)
 
 
+=======
+>>>>>>> origin/main
 class LatestFrame:
     def __init__(self):
         self._condition = threading.Condition()
@@ -37,6 +40,7 @@ class LatestFrame:
         self.source = "none"
         self.error = None
         self.closed = False
+<<<<<<< HEAD
         self.orientation = "source"
         self.orientation_revision = 0
 
@@ -54,6 +58,8 @@ class LatestFrame:
                 if self._frame is not None:
                     self.sequence += 1
                 self._condition.notify_all()
+=======
+>>>>>>> origin/main
 
     def put(self, frame, source="camera"):
         if frame is None or frame.size == 0:
@@ -72,13 +78,18 @@ class LatestFrame:
     def read(self, max_age=3.0):
         with self._condition:
             valid = not self.closed and self._frame is not None and time.monotonic()-self.timestamp <= max_age
+<<<<<<< HEAD
             return (True, orient_frame(self._frame, self.orientation)) if valid else (False, None)
+=======
+            return (True, self._frame.copy()) if valid else (False, None)
+>>>>>>> origin/main
 
     def read_new(self, after=0, timeout=1.0):
         with self._condition:
             self._condition.wait_for(lambda: self.sequence > after or self.closed, timeout)
             if self.closed or self.sequence <= after:
                 return False, None, after
+<<<<<<< HEAD
             return True, orient_frame(self._frame, self.orientation), self.sequence
 
     def status(self):
@@ -89,6 +100,13 @@ class LatestFrame:
             return {"source": self.source, "sequence": self.sequence,
                     "orientation":self.orientation, "orientation_revision":self.orientation_revision,
                     "rotation_degrees":degrees, "input_size":size, "output_size":output,
+=======
+            return True, self._frame.copy(), self.sequence
+
+    def status(self):
+        with self._condition:
+            return {"source": self.source, "sequence": self.sequence,
+>>>>>>> origin/main
                     "age_seconds": round(time.monotonic()-self.timestamp, 2) if self.timestamp else None,
                     "average_receive_fps": round(self.received/max(.001, time.monotonic()-self.started), 1),
                     "error": self.error}
@@ -101,7 +119,10 @@ class LatestFrame:
             self._frame = None
             self.timestamp = 0
             self.source = "none"
+<<<<<<< HEAD
             self.error = None
+=======
+>>>>>>> origin/main
 
     def release(self):
         with self._condition:

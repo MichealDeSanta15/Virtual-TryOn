@@ -172,6 +172,7 @@ passed. Compileall and both JS syntax checks passed.
 No new GPU diffusion/Windows execution or dress-fidelity test was performed. See
 `GARMENT_AND_DRESS_FIX.md` and `garment-preparation-verification.json`. The source
 reference/editor images used in testing are not included in the source archives.
+<<<<<<< HEAD
 
 
 ## Follow-up: portrait camera orientation
@@ -188,3 +189,5 @@ and one staged-placement test were skipped. Earlier GPU/memory checks are histor
 not rerun here. No physical phone/Windows camera or GPU inference test was performed.
 Compilation and both JavaScript syntax checks passed. See `CAMERA_ORIENTATION.md`
 and `camera-orientation-verification.json` for details and physical-rotation limits.
+=======
+>>>>>>> origin/main
